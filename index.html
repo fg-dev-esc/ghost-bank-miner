@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>op [N] ref</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%231447e6;stop-opacity:1'/%3E%3Cstop offset='100%25' style='stop-color:%230e3bb3;stop-opacity:1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23grad)'/%3E%3Cg transform='translate(32,32)'%3E%3Cpath d='M-8,-12 L0,-6 L8,-12 L8,-4 L0,2 L-8,-4 Z' fill='%23ffffff' opacity='0.9'/%3E%3Cpath d='M-8,4 L0,10 L8,4 L8,12 L0,18 L-8,12 Z' fill='%23ffffff' opacity='0.6'/%3E%3Cpath d='M0,2 L0,10' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' opacity='0.8'/%3E%3C/g%3E%3Ccircle cx='32' cy='32' r='28' fill='none' stroke='%23ffffff' stroke-width='0.5' opacity='0.1'/%3E%3C/svg%3E">
+
+    <!-- Fuentes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Librerías -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.2.0/github-markdown-light.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/styles/atom-one-dark.css">
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.8.0/highlight.min.js"></script>
+
+    <!-- Configuración Tailwind (Para replicar tus colores exactos sin CSS) -->
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            DEFAULT: '#1447e6',
+                            hover: '#0e3bb3'
+                        },
+                        zinc: {
+                            850: '#1f1f22',
+                            950: '#09090b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Estilos Markdown personalizados -->
+    <style>
+        ::view-transition-old(root),
+        ::view-transition-new(root) {
+            animation: none;
+            mix-blend-mode: normal;
+        }
+
+        .markdown-content {
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .markdown-content p {
+            margin-bottom: 1rem;
+        }
+
+        .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+            font-weight: 700;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            line-height: 1.25;
+        }
+
+        .markdown-content h1 {
+            font-size: 1.5rem;
+            border-bottom: 2px solid;
+            border-color: inherit;
+            padding-bottom: 0.3rem;
+        }
+
+        .markdown-content h2 {
+            font-size: 1.25rem;
+            border-bottom: 1px solid;
+            border-color: inherit;
+            padding-bottom: 0.3rem;
+        }
+
+        .markdown-content h3 {
+            font-size: 1.1rem;
+        }
+
+        .markdown-content ul, .markdown-content ol {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+        }
+
+        .markdown-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .markdown-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .markdown-content table thead {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .dark .markdown-content table thead {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .markdown-content table th,
+        .markdown-content table td {
+            border: 1px solid;
+            border-color: inherit;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .markdown-content code:not(pre code) {
+            background-color: rgba(0, 0, 0, 0.08);
+            color: inherit;
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .dark .markdown-content code:not(pre code) {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .markdown-content pre {
+            background-color: #282c34;
+            color: #abb2bf;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .markdown-content pre code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: inherit;
+            background: none;
+            padding: 0;
+        }
+
+        .markdown-content blockquote {
+            border-left: 4px solid;
+            border-color: inherit;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            opacity: 0.8;
+            font-style: italic;
+        }
+
+        .markdown-content hr {
+            border: none;
+            border-top: 2px solid;
+            border-color: inherit;
+            margin: 2rem 0;
+        }
+
+        .markdown-content a {
+            color: #1447e6;
+            text-decoration: underline;
+        }
+
+        .markdown-content a:hover {
+            color: #0e3bb3;
+        }
+
+        .dark .markdown-content a {
+            color: #60a5fa;
+        }
+
+        .dark .markdown-content a:hover {
+            color: #93c5fd;
+        }
+
+        .markdown-content strong {
+            font-weight: 700;
+        }
+
+        .markdown-content em {
+            font-style: italic;
+        }
+
+        /* Sintaxis highlighting para código */
+        .hljs {
+            background: #282c34 !important;
+            color: #abb2bf !important;
+        }
+
+        .hljs-attr, .hljs-attribute {
+            color: #e06c75;
+        }
+
+        .hljs-string {
+            color: #98c379;
+        }
+
+        .hljs-number {
+            color: #d19a66;
+        }
+
+        .hljs-literal {
+            color: #56b6c2;
+        }
+
+        .hljs-function {
+            color: #61afef;
+        }
+    </style>
+</head>
+<body class="bg-zinc-100 text-zinc-900 dark:bg-black dark:text-zinc-100 min-h-screen transition-colors duration-300 selection:bg-brand selection:text-white flex flex-col font-sans">
+
+    <!-- Navbar Minimalista -->
+    <nav class="border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-brand flex items-center justify-center text-white shadow-[0_0_15px_rgba(20,71,230,0.3)]">
+                    <i data-lucide="file-json" class="w-5 h-5"></i>
+                </div>
+                <h1 class="font-bold text-lg tracking-tight">Renombrador <span class="text-zinc-400 dark:text-zinc-500 font-normal">op [N] ref</span></h1>
+            </div>
+
+            <div class="hidden sm:flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+                <span>¿Necesitas ayuda?</span>
+                <a href="mailto:luis.fernandez@escotel.com.mx?subject=Soporte%20T%C3%A9cnico%20-%20Renombrador%20PDF&body=Hola%20Luis%2C%0D%0A%0D%0ASolicito%20soporte%20t%C3%A9cnico%20para%20el%20Renombrador%20de%20PDFs%20(op%20%5BN%5D%20ref).%0D%0A%0D%0ADescripci%C3%B3n%20del%20problema%3A%0D%0A%5BDescribe%20aqu%C3%AD%20tu%20problema%20o%20consulta%5D%0D%0A%0D%0AArchivo(s)%20afectado(s)%3A%0D%0A%5BNombre%20del%20archivo%20o%20archivos%5D%0D%0A%0D%0APasos%20para%20reproducir%3A%0D%0A1.%20%0D%0A2.%20%0D%0A3.%20%0D%0A%0D%0AComportamiento%20esperado%3A%0D%0A%5BQu%C3%A9%20esperabas%20que%20sucediera%5D%0D%0A%0D%0AComportamiento%20actual%3A%0D%0A%5BQu%C3%A9%20est%C3%A1%20sucediendo%20actualmente%5D%0D%0A%0D%0ASaludos%20cordiales." class="inline-flex items-center gap-1.5 text-brand hover:text-brand-hover font-medium transition-colors group">
+                    <i data-lucide="mail" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
+                    luis.fernandez@escotel.com.mx
+                </a>
+            </div>
+
+            <button onclick="toggleTheme()" class="p-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-500 dark:text-zinc-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand/20" title="Cambiar tema">
+                <i data-lucide="sun" class="w-5 h-5 hidden dark:block transition-transform duration-200"></i>
+                <i data-lucide="moon" class="w-5 h-5 block dark:hidden transition-transform duration-200"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <main class="flex-1 max-w-4xl mx-auto w-full p-6 space-y-8">
+        
+        <!-- Tarjeta Principal -->
+        <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:border-brand/30 dark:hover:border-brand/30 transition-all duration-500">
+
+            <div class="p-8">
+                <!-- Dropzone -->
+                <div id="dropZone" class="group relative flex flex-col items-center justify-center w-full h-56 rounded-xl border-2 border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950/50 hover:border-brand hover:bg-blue-50/50 dark:hover:bg-brand/5 dark:hover:border-brand transition-all duration-300 cursor-pointer">
+
+                    <div class="absolute inset-0 bg-gradient-to-br from-brand/0 to-brand/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none"></div>
+
+                    <div class="flex flex-col items-center justify-center z-10 pointer-events-none text-center p-4">
+                        <div class="w-12 h-12 mb-4 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center group-hover:scale-110 group-hover:bg-brand group-hover:text-white transition-all duration-300 text-zinc-500 dark:text-zinc-400">
+                            <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+                        </div>
+                        <p class="text-sm font-medium text-zinc-700 dark:text-zinc-200 mb-1">
+                            Haz clic o arrastra archivos PDF
+                        </p>
+                        <p class="text-xs text-zinc-500 dark:text-zinc-500">
+                            Busca automáticamente el patrón <code class="font-mono text-brand bg-brand/10 px-1 rounded">op [N] ref</code>
+                        </p>
+                    </div>
+                    <input id="fileInput" type="file" class="hidden" multiple accept=".pdf" />
+                </div>
+            </div>
+
+            <!-- Botón de Descarga (siempre visible arriba) -->
+            <div id="actionHeader" class="px-8 pb-4 hidden">
+                <button id="downloadBtn" onclick="downloadZip()" class="w-full group flex items-center justify-center gap-3 bg-brand hover:bg-brand-hover text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 shadow-[0_4px_14px_0_rgba(20,71,230,0.39)] hover:shadow-[0_6px_20px_rgba(20,71,230,0.23)] hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i data-lucide="download" class="w-5 h-5"></i>
+                    <span>Descargar Archivos (ZIP)</span>
+                </button>
+            </div>
+
+            <!-- Barra de Estado (debajo del botón) -->
+            <div id="statusBar" class="hidden px-8 py-3 border-y border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="relative flex h-3 w-3">
+                      <span id="ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-3 w-3 bg-brand"></span>
+                    </div>
+                    <span id="statusText" class="text-xs font-mono text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">Procesando...</span>
+                </div>
+                <span id="counter" class="text-xs font-bold text-zinc-900 dark:text-white bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 px-2 py-1 rounded">0/0</span>
+            </div>
+
+            <!-- Tabs -->
+            <div id="tabsContainer">
+                <div class="flex border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 overflow-x-auto">
+                    <button onclick="switchReportTab('list')" id="tabList" class="tab-report active px-6 py-3 text-sm font-medium text-zinc-900 dark:text-zinc-100 border-b-2 border-brand whitespace-nowrap">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="list" class="w-4 h-4"></i>
+                            Vista de Lista
+                        </div>
+                    </button>
+                    <button onclick="switchReportTab('table')" id="tabTable" class="tab-report px-6 py-3 text-sm font-medium text-zinc-500 dark:text-zinc-400 border-b-2 border-transparent hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors whitespace-nowrap">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="table" class="w-4 h-4"></i>
+                            Reporte Detallado
+                        </div>
+                    </button>
+                    <button onclick="switchReportTab('excel')" id="tabExcel" class="tab-report px-6 py-3 text-sm font-medium text-zinc-500 dark:text-zinc-400 border-b-2 border-transparent hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors whitespace-nowrap">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i>
+                            Asistente de Excel
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Área de Contenido -->
+            <div id="processArea" class="bg-zinc-50/50 dark:bg-zinc-950/30">
+
+                <!-- Tab Content: Lista -->
+                <div id="listView" class="tab-content">
+                    <div id="listPlaceholder" class="p-8 text-center">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-zinc-100 dark:bg-zinc-800 mb-4">
+                            <i data-lucide="file-text" class="w-8 h-8 text-zinc-400 dark:text-zinc-500"></i>
+                        </div>
+                        <h4 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Sin Archivos Procesados</h4>
+                        <p class="text-sm text-zinc-600 dark:text-zinc-400 max-w-md mx-auto">
+                            Sube archivos PDF para ver la lista de documentos procesados.
+                        </p>
+                    </div>
+                    <ul id="fileList" class="max-h-[600px] overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-zinc-300 dark:scrollbar-thumb-zinc-700 hidden">
+                        <!-- Los items se inyectan aquí -->
+                    </ul>
+                </div>
+
+                <!-- Tab Content: Tabla -->
+                <div id="tableView" class="tab-content hidden">
+                    <div class="p-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <p class="text-sm text-zinc-600 dark:text-zinc-400"></p>
+                            <button onclick="exportToCSV()" id="exportCsvBtn" class="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                <i data-lucide="file-down" class="w-4 h-4"></i>
+                                Exportar CSV
+                            </button>
+                        </div>
+                        <div id="tablePlaceholder" class="p-8 text-center">
+                            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-zinc-100 dark:bg-zinc-800 mb-4">
+                                <i data-lucide="table" class="w-8 h-8 text-zinc-400 dark:text-zinc-500"></i>
+                            </div>
+                            <h4 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Tabla Vacía</h4>
+                            <p class="text-sm text-zinc-600 dark:text-zinc-400 max-w-md mx-auto">
+                                Procesa archivos PDF para ver el reporte en tabla.
+                            </p>
+                        </div>
+                        <div id="tableContainer" class="max-h-[400px] overflow-auto border border-zinc-200 dark:border-zinc-800 rounded-lg scrollbar-thin scrollbar-thumb-zinc-300 dark:scrollbar-thumb-zinc-700 hidden">
+                            <table class="w-full text-sm">
+                                <thead class="bg-zinc-100 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 sticky top-0">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left font-semibold text-zinc-700 dark:text-zinc-300 w-12">#</th>
+                                        <th class="px-4 py-3 text-left font-semibold text-zinc-700 dark:text-zinc-300 min-w-[200px]">Nombre Original</th>
+                                        <th class="px-4 py-3 text-left font-semibold text-zinc-700 dark:text-zinc-300 min-w-[300px]">Contexto de la Extracción</th>
+                                        <th class="px-4 py-3 text-left font-semibold text-zinc-700 dark:text-zinc-300 min-w-[150px]">Nuevo Nombre</th>
+                                        <th class="px-4 py-3 text-left font-semibold text-zinc-700 dark:text-zinc-300 w-32">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBody" class="divide-y divide-zinc-200 dark:divide-zinc-800 bg-white dark:bg-zinc-950">
+                                    <!-- Las filas se inyectan aquí -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Asistente de Excel -->
+                <div id="excelView" class="tab-content hidden flex flex-col h-[340px] transition-all duration-300">
+                    <!-- Model Selector -->
+                    <div class="border-b border-zinc-200 dark:border-zinc-800 p-3 bg-zinc-50 dark:bg-zinc-950 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <label for="modelSelect" class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Modelo:</label>
+                            <select
+                                id="modelSelect"
+                                class="px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand dark:focus:border-brand transition-all"
+                            >
+                                <option value="openai/gpt-oss-120b" selected>OpenAI GPT-OSS-120B</option>
+                                <option value="moonshotai/kimi-k2-instruct-0905">Moonshot Kimi-K2</option>
+                                <option value="qwen/qwen3-32b">Qwen3-32B</option>
+                            </select>
+                        </div>
+                        <button
+                            id="newChatBtn"
+                            onclick="resetChat()"
+                            class="hidden flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-lg transition-colors"
+                            title="Iniciar nueva conversación"
+                        >
+                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                            Nueva Conversación
+                        </button>
+                    </div>
+
+                    <!-- Chat History -->
+                    <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-zinc-300 dark:scrollbar-thumb-zinc-700 flex items-center justify-center">
+                        <div id="chatPlaceholder" class="text-center">
+                            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-zinc-100 dark:bg-zinc-800 mb-4">
+                                <i data-lucide="sparkles" class="w-8 h-8 text-zinc-400 dark:text-zinc-500"></i>
+                            </div>
+                            <h4 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Tutor de Excel</h4>
+                            <p class="text-sm text-zinc-600 dark:text-zinc-400 max-w-md">
+                                Escribe tu pregunta sobre Excel y obtén ayuda personalizada
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Input Area -->
+                    <div class="border-t border-zinc-200 dark:border-zinc-800 p-4 bg-zinc-50 dark:bg-zinc-950">
+                        <!-- Imágenes subidas -->
+                        <div id="uploadedImages" class="flex gap-2 mb-3 flex-wrap hidden">
+                            <!-- Las imágenes se inyectan aquí -->
+                        </div>
+
+                        <!-- Input y botones -->
+                        <div class="flex gap-2">
+                            <input
+                                type="text"
+                                id="chatInput"
+                                placeholder="Pregunta sobre Excel..."
+                                class="flex-1 px-4 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand dark:focus:border-brand transition-all"
+                            />
+                            <button
+                                onclick="document.getElementById('imageInput').click()"
+                                class="w-10 h-10 bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-lg transition-all duration-200 flex items-center justify-center shrink-0"
+                                title="Subir imagen"
+                            >
+                                <i data-lucide="image" class="w-4 h-4"></i>
+                            </button>
+                            <button
+                                id="chatSendBtn"
+                                onclick="sendChatMessage()"
+                                class="w-10 h-10 bg-brand hover:bg-brand-hover text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shrink-0"
+                            >
+                                <i data-lucide="send" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+
+                        <!-- Input hidden para imágenes -->
+                        <input
+                            type="file"
+                            id="imageInput"
+                            accept="image/*"
+                            multiple
+                            class="hidden"
+                            onchange="handleImageUpload(event)"
+                        />
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+
+    <!-- Scripts de Lógica -->
+    <script>
+        lucide.createIcons();
+
+        // Theme Logic con View Transition API (círculo animado)
+        async function toggleTheme() {
+            const html = document.documentElement;
+            const isDark = html.classList.contains('dark');
+            const btn = document.querySelector('[onclick="toggleTheme()"]');
+
+            if (!document.startViewTransition || !btn) {
+                // Fallback sin animación
+                html.classList.toggle('dark');
+                localStorage.setItem('theme', isDark ? 'light' : 'dark');
+                lucide.createIcons();
+                return;
+            }
+
+            const { top, left, width, height } = btn.getBoundingClientRect();
+            const x = left + width / 2;
+            const y = top + height / 2;
+            const maxRadius = Math.hypot(
+                Math.max(left, window.innerWidth - left),
+                Math.max(top, window.innerHeight - top)
+            );
+
+            const transition = document.startViewTransition(() => {
+                html.classList.toggle('dark');
+                localStorage.setItem('theme', isDark ? 'light' : 'dark');
+                lucide.createIcons();
+            });
+
+            await transition.ready;
+
+            document.documentElement.animate(
+                {
+                    clipPath: [
+                        `circle(0px at ${x}px ${y}px)`,
+                        `circle(${maxRadius}px at ${x}px ${y}px)`,
+                    ],
+                },
+                {
+                    duration: 400,
+                    easing: 'ease-in-out',
+                    pseudoElement: '::view-transition-new(root)',
+                }
+            );
+        }
+
+        // Load saved theme on page load (default light)
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            lucide.createIcons();
+        });
+
+        // Elements
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const processArea = document.getElementById('processArea');
+        const fileList = document.getElementById('fileList');
+        const statusText = document.getElementById('statusText');
+        const counter = document.getElementById('counter');
+        const ping = document.getElementById('ping');
+        const actionHeader = document.getElementById('actionHeader');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const tabsContainer = document.getElementById('tabsContainer');
+        const tableBody = document.getElementById('tableBody');
+        const statusBar = document.getElementById('statusBar');
+        const exportCsvBtn = document.getElementById('exportCsvBtn');
+
+        let zip = new JSZip();
+        let hasFiles = false;
+        let fileNameCount = {}; // Para rastrear nombres duplicados
+        let processedData = []; // Para almacenar datos de la tabla
+
+        // Drag & Drop Events
+        dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => processFiles(e.target.files));
+        
+        ['dragenter', 'dragover'].forEach(e => {
+            dropZone.addEventListener(e, (ev) => {
+                ev.preventDefault();
+                dropZone.classList.add('border-brand', 'ring-4', 'ring-brand/10');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(e => {
+            dropZone.addEventListener(e, (ev) => {
+                ev.preventDefault();
+                dropZone.classList.remove('border-brand', 'ring-4', 'ring-brand/10');
+            });
+        });
+
+        dropZone.addEventListener('drop', (e) => processFiles(e.dataTransfer.files));
+
+        // Processing Logic
+        async function processFiles(files) {
+            const pdfs = Array.from(files).filter(f => f.type === 'application/pdf');
+            if (pdfs.length === 0) return;
+
+            // Reset UI
+            statusBar.classList.remove('hidden');
+            actionHeader.classList.add('hidden');
+
+            // Mostrar lista, ocultar placeholder de lista
+            document.getElementById('listPlaceholder').classList.add('hidden');
+            fileList.classList.remove('hidden');
+            fileList.innerHTML = '';
+
+            // Mostrar tabla, ocultar placeholder de tabla
+            document.getElementById('tablePlaceholder').classList.add('hidden');
+            document.getElementById('tableContainer').classList.remove('hidden');
+            tableBody.innerHTML = '';
+
+            zip = new JSZip();
+            hasFiles = false;
+            fileNameCount = {}; // Reset contador de nombres
+            processedData = []; // Reset datos de tabla
+            ping.style.display = 'inline-flex';
+            statusText.innerText = "PROCESANDO...";
+
+            // Deshabilitar botones mientras se procesa
+            exportCsvBtn.disabled = true;
+
+            lucide.createIcons();
+
+            let processed = 0;
+            const total = pdfs.length;
+
+            for (const file of pdfs) {
+                // UI Item Skeleton
+                const li = document.createElement('li');
+                li.className = "group flex items-center justify-between p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 transition-all";
+                li.innerHTML = `
+                    <div class="flex items-center gap-3 w-full overflow-hidden">
+                        <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-brand shrink-0"></i>
+                        <span class="text-sm text-zinc-600 dark:text-zinc-400 truncate">${file.name}</span>
+                    </div>
+                `;
+                fileList.appendChild(li);
+                lucide.createIcons();
+                
+                // Process
+                try {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const uint8Array = new Uint8Array(arrayBuffer);
+
+                    const pdf = await pdfjsLib.getDocument({data: uint8Array}).promise;
+                    const page = await pdf.getPage(1);
+                    const textContent = await page.getTextContent();
+                    const text = textContent.items.map(i => i.str).join(' ');
+
+                    const match = text.match(/op[\s\.\-\:]*(\d+)[\s\.\-\:]*ref/i);
+
+                    if (match) {
+                        const baseNumber = match[1];
+                        let newName = `${baseNumber}.pdf`;
+
+                        // Manejar duplicados agregando sufijo
+                        if (fileNameCount[baseNumber]) {
+                            fileNameCount[baseNumber]++;
+                            newName = `${baseNumber}_${fileNameCount[baseNumber]}.pdf`;
+                        } else {
+                            fileNameCount[baseNumber] = 1;
+                        }
+
+                        // Guardar el archivo original sin modificar
+                        zip.file(newName, file, {binary: true});
+                        hasFiles = true;
+
+                        // Extraer contexto alrededor del patrón
+                        const matchIndex = text.indexOf(match[0]);
+                        const contextStart = Math.max(0, matchIndex - 50);
+                        const contextEnd = Math.min(text.length, matchIndex + match[0].length + 50);
+                        const extractedContext = (contextStart > 0 ? '...' : '') +
+                                                text.substring(contextStart, contextEnd) +
+                                                (contextEnd < text.length ? '...' : '');
+
+                        processedData.push({
+                            index: processed + 1,
+                            originalName: file.name,
+                            extractedText: extractedContext,
+                            newName: newName,
+                            status: 'Exitoso'
+                        });
+
+                        li.className = "flex items-center justify-between p-3 rounded-lg border border-green-200 dark:border-green-900/30 bg-green-50 dark:bg-green-900/10";
+                        li.innerHTML = `
+                            <div class="flex items-center gap-3 w-full overflow-hidden">
+                                <div class="w-8 h-8 rounded bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-green-600 dark:text-green-400 shrink-0">
+                                    <i data-lucide="check" class="w-4 h-4"></i>
+                                </div>
+                                <div class="flex flex-col min-w-0">
+                                    <span class="text-xs text-zinc-400 line-through truncate">${file.name}</span>
+                                    <span class="text-sm font-semibold text-zinc-900 dark:text-zinc-200 font-mono truncate text-brand">${newName}</span>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        throw new Error("No match");
+                    }
+                } catch (e) {
+                    // Guardar datos para la tabla (error)
+                    processedData.push({
+                        index: processed + 1,
+                        originalName: file.name,
+                        extractedText: 'N/A',
+                        newName: 'N/A',
+                        status: 'Error - No se encontró patrón'
+                    });
+
+                    li.className = "flex items-center justify-between p-3 rounded-lg border border-red-200 dark:border-red-900/30 bg-red-50 dark:bg-red-900/10";
+                    li.innerHTML = `
+                        <div class="flex items-center gap-3 w-full overflow-hidden">
+                            <div class="w-8 h-8 rounded bg-red-100 dark:bg-red-900/40 flex items-center justify-center text-red-500 shrink-0">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                            </div>
+                            <div class="flex flex-col min-w-0">
+                                <span class="text-sm text-zinc-700 dark:text-zinc-300 truncate">${file.name}</span>
+                                <span class="text-xs text-red-500 font-medium">No encontrado</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                processed++;
+                counter.innerText = `${processed}/${total}`;
+                lucide.createIcons();
+                fileList.scrollTop = fileList.scrollHeight; // Auto scroll
+            }
+
+            statusText.innerText = "PROCESO FINALIZADO";
+            ping.style.display = 'none';
+
+            if (hasFiles) {
+                actionHeader.classList.remove('hidden');
+                lucide.createIcons();
+            }
+
+            // Habilitar botón de CSV siempre que haya datos
+            if (processedData.length > 0) {
+                exportCsvBtn.disabled = false;
+            }
+            lucide.createIcons();
+
+            // Llenar tabla con los datos procesados
+            fillTable();
+        }
+
+        function fillTable() {
+            tableBody.innerHTML = '';
+            processedData.forEach((data) => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors';
+
+                const statusClass = data.status === 'Exitoso' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
+                const statusIcon = data.status === 'Exitoso' ? 'check-circle' : 'x-circle';
+
+                row.innerHTML = `
+                    <td class="px-4 py-3 text-zinc-600 dark:text-zinc-400">${data.index}</td>
+                    <td class="px-4 py-3 text-zinc-900 dark:text-zinc-100 font-medium break-words">${data.originalName}</td>
+                    <td class="px-4 py-3 text-zinc-700 dark:text-zinc-300 text-xs break-words">
+                        <div class="line-clamp-2" title="${data.extractedText}">${data.extractedText}</div>
+                    </td>
+                    <td class="px-4 py-3 text-brand font-mono font-semibold">${data.newName}</td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center gap-2 ${statusClass}">
+                            <i data-lucide="${statusIcon}" class="w-4 h-4"></i>
+                            <span class="text-xs font-medium whitespace-nowrap">${data.status}</span>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+            lucide.createIcons();
+        }
+
+        function switchReportTab(tabName) {
+            // Update tab buttons
+            const tabs = document.querySelectorAll('.tab-report');
+            tabs.forEach(tab => {
+                const expectedId = 'tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1);
+                if (tab.id === expectedId) {
+                    tab.classList.add('border-brand', 'text-zinc-900', 'dark:text-zinc-100');
+                    tab.classList.remove('border-transparent', 'text-zinc-500', 'dark:text-zinc-400');
+                } else {
+                    tab.classList.remove('border-brand', 'text-zinc-900', 'dark:text-zinc-100');
+                    tab.classList.add('border-transparent', 'text-zinc-500', 'dark:text-zinc-400');
+                }
+            });
+
+            // Update tab content
+            document.getElementById('listView').classList.toggle('hidden', tabName !== 'list');
+            document.getElementById('tableView').classList.toggle('hidden', tabName !== 'table');
+            document.getElementById('excelView').classList.toggle('hidden', tabName !== 'excel');
+            lucide.createIcons();
+        }
+
+        function exportToCSV() {
+            if (processedData.length === 0) {
+                alert('No hay datos para exportar');
+                return;
+            }
+
+            // Crear CSV con encabezados
+            let csv = '#,Nombre Original,Contexto de la Extracción,Nuevo Nombre,Estado\n';
+            processedData.forEach(data => {
+                const row = [
+                    data.index,
+                    `"${data.originalName.replace(/"/g, '""')}"`,
+                    `"${data.extractedText.replace(/"/g, '""')}"`,
+                    `"${data.newName.replace(/"/g, '""')}"`,
+                    `"${data.status.replace(/"/g, '""')}"`
+                ].join(',');
+                csv += row + '\n';
+            });
+
+            // Agregar BOM UTF-8 para que Excel reconozca los acentos
+            const BOM = '\uFEFF';
+            const csvWithBOM = BOM + csv;
+
+            // Descargar CSV
+            const blob = new Blob([csvWithBOM], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            const now = new Date();
+            let horas = now.getHours() % 12 || 12;
+            const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+            const fecha = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}_${String(horas).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}${ampm}`;
+            link.download = `reporte-extracción-pdf-${fecha}.csv`;
+            link.click();
+        }
+
+        function downloadZip() {
+            const originalText = downloadBtn.innerHTML;
+            downloadBtn.disabled = true;
+            downloadBtn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Comprimiendo...</span>`;
+            lucide.createIcons();
+
+            zip.generateAsync({type:"blob"}).then(function(content) {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                const now = new Date();
+                let horas = now.getHours() % 12 || 12;
+                const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+                const fecha = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}-${String(horas).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}${ampm}`;
+                link.download = `reporte-extracción-pdf-${fecha}.zip`;
+                link.click();
+
+                setTimeout(() => {
+                    downloadBtn.disabled = false;
+                    downloadBtn.innerHTML = originalText;
+                    lucide.createIcons();
+                }, 1000);
+            });
+        }
+
+        // ===== Chat - Asistente de Excel (Groq API) =====
+        let GROQ_API_KEY = '';
+        const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+
+        // Cargar API key desde el servidor
+        fetch('/api/env')
+          .then(r => r.json())
+          .then(env => { GROQ_API_KEY = env.GROQ_API_KEY; })
+          .catch(() => console.warn('No se pudo cargar GROQ_API_KEY'));
+
+        let chatHistory = []; // Almacenar historial de chat
+        let uploadedImages = []; // Almacenar imágenes en base64
+
+        // System prompt: Tutor de Excel en español de México
+        const SYSTEM_PROMPT = `Eres un tutor experto de Microsoft Excel en español de México. Tu objetivo es enseñar y ayudar a los usuarios a usar Excel de manera efectiva.
+
+CARACTERÍSTICAS DE TU RESPUESTA:
+- Responde siempre en español de México, usando términos locales
+- Sé amable, paciente y educativo
+- Proporciona ejemplos prácticos cuando sea posible
+- Usa fórmulas de Excel reales con sintaxis correcta
+- Explica conceptos paso a paso
+- Si el usuario pregunta algo fuera de Excel, redirige gentilmente a Excel
+- Usa viñetas (•) y numeración para claridad
+- Si menciones accesos directos, especifica "Ctrl+X" para Windows o "Cmd+X" para Mac
+
+TEMAS EN LOS QUE ERES EXPERTO:
+- Fórmulas y funciones (SUMA, PROMEDIO, SI, BUSCARV, INDICE, COINCIDIR, etc.)
+- Análisis de datos (Tablas dinámicas, Filtros, Validación de datos)
+- Gráficos y visualización
+- Funciones de fecha y hora
+- Formato condicional
+- Macros y VBA (básico)
+- Importación y limpieza de datos
+- Funciones de texto (CONCATENAR, IZQUIERDA, DERECHA, etc.)
+- Funciones lógicas (SI, Y, O)
+- Administración de hojas de cálculo`;
+
+        function getChatModel() {
+            const modelSelect = document.getElementById('modelSelect');
+            return modelSelect ? modelSelect.value : 'openai/gpt-oss-120b';
+        }
+
+        // Manejar carga de imágenes
+        function handleImageUpload(event) {
+            const files = Array.from(event.target.files);
+            const uploadedImagesDiv = document.getElementById('uploadedImages');
+
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const base64 = e.target.result;
+                    uploadedImages.push({
+                        name: file.name,
+                        base64: base64
+                    });
+
+                    // Mostrar miniatura
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'relative';
+                    imgContainer.innerHTML = `
+                        <img src="${base64}" class="h-16 w-16 rounded-lg object-cover border border-zinc-300 dark:border-zinc-700">
+                        <button
+                            onclick="removeImage('${uploadedImages.length - 1}')"
+                            class="absolute -top-2 -right-2 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors"
+                        >
+                            ×
+                        </button>
+                    `;
+                    uploadedImagesDiv.appendChild(imgContainer);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            uploadedImagesDiv.classList.remove('hidden');
+            event.target.value = ''; // Reset input
+            lucide.createIcons();
+        }
+
+        // Remover imagen
+        function removeImage(index) {
+            uploadedImages.splice(index, 1);
+            const uploadedImagesDiv = document.getElementById('uploadedImages');
+            uploadedImagesDiv.innerHTML = '';
+
+            if (uploadedImages.length === 0) {
+                uploadedImagesDiv.classList.add('hidden');
+            } else {
+                uploadedImages.forEach((img, i) => {
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'relative';
+                    imgContainer.innerHTML = `
+                        <img src="${img.base64}" class="h-16 w-16 rounded-lg object-cover border border-zinc-300 dark:border-zinc-700">
+                        <button
+                            onclick="removeImage(${i})"
+                            class="absolute -top-2 -right-2 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors"
+                        >
+                            ×
+                        </button>
+                    `;
+                    uploadedImagesDiv.appendChild(imgContainer);
+                });
+            }
+            lucide.createIcons();
+        }
+
+        function addChatMessage(text, isUser = true) {
+            const messagesDiv = document.getElementById('chatMessages');
+
+            // Remover placeholder cuando se agregue el primer mensaje
+            const placeholder = document.getElementById('chatPlaceholder');
+            if (placeholder) {
+                placeholder.remove();
+                messagesDiv.classList.remove('flex', 'items-center', 'justify-center');
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`;
+
+            const contentDiv = document.createElement('div');
+
+            if (isUser) {
+                contentDiv.className = 'max-w-xs px-4 py-2 rounded-lg bg-brand text-white break-words';
+                contentDiv.textContent = text;
+            } else {
+                contentDiv.className = 'max-w-2xl px-4 py-3 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 markdown-content';
+                contentDiv.innerHTML = marked.parse(text);
+
+                // Highlight código si está disponible
+                if (typeof hljs !== 'undefined') {
+                    contentDiv.querySelectorAll('pre code').forEach(block => {
+                        hljs.highlightElement(block);
+                    });
+                }
+            }
+
+            messageDiv.appendChild(contentDiv);
+            messagesDiv.appendChild(messageDiv);
+
+            // Usuario → scroll al fondo. Asistente → scroll al inicio del mensaje
+            if (isUser) {
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            } else {
+                messageDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            // Mostrar botón "Nueva" y crecer el container cuando hay mensajes
+            const newChatBtn = document.getElementById('newChatBtn');
+            if (newChatBtn && messagesDiv.children.length > 0) {
+                newChatBtn.classList.remove('hidden');
+                newChatBtn.classList.add('flex');
+                const excelView = document.getElementById('excelView');
+                if (excelView) {
+                    excelView.classList.remove('h-[340px]');
+                    excelView.classList.add('h-[440px]');
+                }
+            }
+
+            lucide.createIcons();
+        }
+
+        function addChatImage(base64) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex justify-end mb-4';
+
+            const imgContainer = document.createElement('div');
+            imgContainer.className = 'max-w-xs';
+            imgContainer.innerHTML = `<img src="${base64}" class="max-h-48 rounded-lg border border-brand/30">`;
+
+            messageDiv.appendChild(imgContainer);
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function addChatTyping() {
+            const messagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.id = 'typingIndicator';
+            messageDiv.className = 'flex justify-start';
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'px-4 py-3 rounded-lg bg-zinc-200 dark:bg-zinc-800';
+            contentDiv.innerHTML = `
+                <div class="flex gap-1">
+                    <div class="w-2 h-2 rounded-full bg-zinc-600 dark:bg-zinc-400 animate-bounce"></div>
+                    <div class="w-2 h-2 rounded-full bg-zinc-600 dark:bg-zinc-400 animate-bounce" style="animation-delay: 0.1s"></div>
+                    <div class="w-2 h-2 rounded-full bg-zinc-600 dark:bg-zinc-400 animate-bounce" style="animation-delay: 0.2s"></div>
+                </div>
+            `;
+
+            messageDiv.appendChild(contentDiv);
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        async function sendChatMessage() {
+            const chatInput = document.getElementById('chatInput');
+            const chatSendBtn = document.getElementById('chatSendBtn');
+            const message = chatInput.value.trim();
+
+            if (!message && uploadedImages.length === 0) return;
+
+            // Mostrar mensaje del usuario con imágenes
+            addChatMessage(message || '📸 Imagen enviada', true);
+            if (uploadedImages.length > 0) {
+                uploadedImages.forEach(img => {
+                    addChatImage(img.base64);
+                });
+            }
+
+            // Limpiar input y deshabilitar botón
+            chatInput.value = '';
+            chatSendBtn.disabled = true;
+            document.getElementById('uploadedImages').classList.add('hidden');
+            document.getElementById('uploadedImages').innerHTML = '';
+
+            let finalMessage = message;
+            let imagesToProcess = uploadedImages.slice(); // Copia del array
+            uploadedImages = [];
+            addChatTyping();
+
+            try {
+                // Si hay imágenes, primero procesarlas con Llama para obtener contexto detallado
+                if (imagesToProcess.length > 0) {
+                    const imageContextPrompt = `Analiza esta/s imagen/es con MÁXIMO DETALLE. Describe:
+- Qué hay en la imagen (tablas, gráficos, fórmulas, datos, etc)
+- Estructura y contenido específico
+- Detalles técnicos relevantes
+- Cualquier texto visible
+- Contexto y propósito aparente
+
+Sé extremadamente detallista y específico.`;
+
+                    const visionMessages = [
+                        {
+                            role: 'user',
+                            content: [
+                                { type: 'text', text: imageContextPrompt }
+                            ]
+                        }
+                    ];
+
+                    // Agregar imágenes al primer mensaje
+                    imagesToProcess.forEach(img => {
+                        visionMessages[0].content.push({
+                            type: 'image_url',
+                            image_url: { url: img.base64 }
+                        });
+                    });
+
+                    // Llamar a Llama para análisis de imágenes
+                    const visionResponse = await fetch(GROQ_API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${GROQ_API_KEY}`
+                        },
+                        body: JSON.stringify({
+                            model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+                            messages: visionMessages,
+                            temperature: 1,
+                            max_completion_tokens: 2048,
+                            top_p: 1,
+                            stream: false
+                        })
+                    });
+
+                    if (!visionResponse.ok) {
+                        const errorData = await visionResponse.json();
+                        throw new Error(`Error en análisis de imagen: ${errorData.error?.message || visionResponse.status}`);
+                    }
+
+                    const visionData = await visionResponse.json();
+                    const imageContext = visionData.choices[0].message.content;
+
+                    // Combinar la pregunta original con el contexto de la imagen
+                    finalMessage = `CONTEXTO DE LA IMAGEN:\n${imageContext}\n\nPREGUNTA DEL USUARIO:\n${message}`;
+                }
+
+                // Ahora enviar a el modelo seleccionado por el usuario con el contexto o la pregunta original
+                const messageContent = finalMessage;
+                chatHistory.push({
+                    role: 'user',
+                    content: messageContent
+                });
+
+                const userModel = getChatModel();
+
+                const response = await fetch(GROQ_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${GROQ_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: userModel,
+                        messages: [
+                            { role: 'system', content: SYSTEM_PROMPT },
+                            ...chatHistory
+                        ],
+                        temperature: 1,
+                        max_completion_tokens: 8192,
+                        top_p: 1,
+                        stream: false
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error?.message || `Error HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const assistantMessage = data.choices[0].message.content;
+
+                // Remover typing indicator
+                const typingIndicator = document.getElementById('typingIndicator');
+                if (typingIndicator) typingIndicator.remove();
+
+                // Mostrar respuesta del asistente
+                addChatMessage(assistantMessage, false);
+                chatHistory.push({ role: 'assistant', content: assistantMessage });
+
+            } catch (error) {
+                // Remover typing indicator en caso de error
+                const typingIndicator = document.getElementById('typingIndicator');
+                if (typingIndicator) typingIndicator.remove();
+
+                addChatMessage(`❌ Error: ${error.message}. Intenta de nuevo.`, false);
+            } finally {
+                chatSendBtn.disabled = false;
+                chatInput.focus();
+            }
+        }
+
+        // Resetear conversación
+        function resetChat() {
+            // Limpiar historial
+            chatHistory = [];
+
+            // Limpiar mensajes visibles y mostrar placeholder
+            const messagesDiv = document.getElementById('chatMessages');
+            messagesDiv.innerHTML = '';
+            messagesDiv.classList.add('flex', 'items-center', 'justify-center');
+
+            const placeholder = document.createElement('div');
+            placeholder.id = 'chatPlaceholder';
+            placeholder.className = 'text-center';
+            placeholder.innerHTML = `
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-zinc-100 dark:bg-zinc-800 mb-4">
+                    <i data-lucide="sparkles" class="w-8 h-8 text-zinc-400 dark:text-zinc-500"></i>
+                </div>
+                <h4 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Tutor de Excel</h4>
+                <p class="text-sm text-zinc-600 dark:text-zinc-400 max-w-md">
+                    Escribe tu pregunta sobre Excel y obtén ayuda personalizada
+                </p>
+            `;
+            messagesDiv.appendChild(placeholder);
+
+            // Ocultar botón "Nueva" y volver al tamaño original
+            const newChatBtn = document.getElementById('newChatBtn');
+            if (newChatBtn) {
+                newChatBtn.classList.add('hidden');
+                newChatBtn.classList.remove('flex');
+            }
+            const excelView = document.getElementById('excelView');
+            if (excelView) {
+                excelView.classList.remove('h-[550px]');
+                excelView.classList.add('h-[340px]');
+            }
+
+            // Limpiar input
+            document.getElementById('chatInput').value = '';
+            document.getElementById('chatInput').focus();
+
+            // Recrear iconos
+            lucide.createIcons();
+        }
+
+        // Permitir envío con Enter y Ctrl+V para pegar imágenes
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatInput = document.getElementById('chatInput');
+            if (chatInput) {
+                chatInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        sendChatMessage();
+                    }
+                });
+
+                // Ctrl+V para pegar imágenes
+                chatInput.addEventListener('paste', (e) => {
+                    const items = e.clipboardData?.items;
+                    if (!items) return;
+
+                    let hasImages = false;
+                    const files = [];
+
+                    for (let item of items) {
+                        if (item.kind === 'file' && item.type.startsWith('image/')) {
+                            hasImages = true;
+                            files.push(item.getAsFile());
+                        }
+                    }
+
+                    if (hasImages) {
+                        e.preventDefault();
+                        // Simular un evento change con los archivos pegados
+                        const dataTransfer = new DataTransfer();
+                        files.forEach(file => dataTransfer.items.add(file));
+                        const fileInput = document.getElementById('imageInput');
+                        fileInput.files = dataTransfer.files;
+                        handleImageUpload({ target: fileInput });
+                    }
+                });
+            }
+        });
+
+    </script>
+</body>
+</html>
