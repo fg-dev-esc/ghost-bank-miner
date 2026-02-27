@@ -23,7 +23,7 @@ const server = http.createServer((req, res) => {
   }
 
   // Endpoint: GET /env → devuelve las keys como JSON
-  if (req.method === 'GET' && req.url === '/env') {
+  if (req.method === 'GET' && (req.url === '/env' || req.url === '/api/env')) {
     const env = {};
     for (const key of PUBLIC_ENV_KEYS) {
       env[key] = process.env[key] || '';
