@@ -1026,7 +1026,26 @@ TEMAS EN LOS QUE ERES EXPERTO:
             if (!message && uploadedImages.length === 0) return;
 
             // Mostrar mensaje del usuario con imágenes
-            addChatMessage(message || '📸 Imagen enviada', true);
+            if (!message && uploadedImages.length > 0) {
+                // Mensaje con icono Lucide en lugar de emoji
+                const messagesDiv = document.getElementById('chatMessages');
+                const placeholder = document.getElementById('chatPlaceholder');
+                if (placeholder) {
+                    placeholder.remove();
+                    messagesDiv.classList.remove('flex', 'items-center', 'justify-center');
+                }
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'flex justify-end mb-4';
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'max-w-xs px-4 py-2 rounded-lg bg-brand text-white break-words flex items-center gap-2';
+                contentDiv.innerHTML = '<i data-lucide="image" class="w-4 h-4 shrink-0"></i><span>Imagen enviada</span>';
+                messageDiv.appendChild(contentDiv);
+                messagesDiv.appendChild(messageDiv);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                lucide.createIcons({ nodes: [contentDiv] });
+            } else {
+                addChatMessage(message, true);
+            }
             if (uploadedImages.length > 0) {
                 uploadedImages.forEach(img => {
                     addChatImage(img.base64);
