@@ -69,7 +69,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`\n✓ Servidor corriendo en http://localhost:${PORT}`);
-  console.log(`✓ API keys disponibles en http://localhost:${PORT}/env`);
-  console.log(`✓ App en http://localhost:${PORT}/\n`);
+  console.log(`http://localhost:${PORT}/\n`);
 });

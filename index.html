@@ -384,7 +384,7 @@
                             >
                                 <option value="openai/gpt-oss-120b" selected>OpenAI GPT-OSS-120B</option>
                                 <option value="moonshotai/kimi-k2-instruct-0905">Moonshot Kimi-K2</option>
-                                <option value="qwen/qwen3-32b">Qwen3-32B</option>
+                                <option value="qwen/qwen3-32b">Qwen3-32B (Thinking)</option>
                             </select>
                         </div>
                         <button
@@ -948,7 +948,29 @@ TEMAS EN LOS QUE ERES EXPERTO:
                 contentDiv.textContent = text;
             } else {
                 contentDiv.className = 'max-w-2xl px-4 py-3 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 markdown-content';
-                contentDiv.innerHTML = marked.parse(text);
+
+                // Separar bloque <think> del contenido principal
+                const thinkMatch = text.match(/^<think>([\s\S]*?)<\/think>\s*/);
+                if (thinkMatch) {
+                    const thinkContent = thinkMatch[1].trim();
+                    const mainContent = text.slice(thinkMatch[0].length).trim();
+
+                    const thinkDiv = document.createElement('details');
+                    thinkDiv.className = 'mb-3 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-900 text-xs text-zinc-500 dark:text-zinc-400';
+                    thinkDiv.innerHTML = `
+                        <summary class="cursor-pointer px-3 py-2 font-medium select-none list-none flex items-center gap-1">
+                            <span style="font-size:0.65rem">▶</span> Cadena de Pensamiento
+                        </summary>
+                        <div class="px-3 pb-3 pt-1 whitespace-pre-wrap leading-relaxed">${thinkContent}</div>
+                    `;
+                    contentDiv.appendChild(thinkDiv);
+
+                    const mainDiv = document.createElement('div');
+                    mainDiv.innerHTML = marked.parse(mainContent);
+                    contentDiv.appendChild(mainDiv);
+                } else {
+                    contentDiv.innerHTML = marked.parse(text);
+                }
 
                 // Highlight código si está disponible
                 if (typeof hljs !== 'undefined') {
@@ -958,7 +980,26 @@ TEMAS EN LOS QUE ERES EXPERTO:
                 }
             }
 
-            messageDiv.appendChild(contentDiv);
+            // Wrapper relativo para posicionar el botón copy
+            const wrapperDiv = document.createElement('div');
+            wrapperDiv.className = 'relative group';
+            wrapperDiv.appendChild(contentDiv);
+
+            const copyBtn = document.createElement('button');
+            copyBtn.title = 'Copiar';
+            copyBtn.className = `absolute bottom-1 ${isUser ? 'left-1' : 'right-1'} opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-zinc-500 dark:text-zinc-300`;
+            copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+            copyBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(text).then(() => {
+                    copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+                    setTimeout(() => {
+                        copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+                    }, 1500);
+                });
+            });
+            wrapperDiv.appendChild(copyBtn);
+
+            messageDiv.appendChild(wrapperDiv);
             messagesDiv.appendChild(messageDiv);
 
             // Usuario → scroll al fondo. Asistente → scroll al inicio del mensaje
