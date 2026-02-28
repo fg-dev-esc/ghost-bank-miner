@@ -5,7 +5,8 @@
       "Bash(npm install:*)",
       "Bash(timeout 5 npm start:*)",
       "Bash(powershell:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(git add:*)"
     ]
   }
 }
