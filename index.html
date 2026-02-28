@@ -625,7 +625,7 @@
 
         // Drag & Drop Events
         dropZone.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', (e) => processFiles(e.target.files));
+        // Nota: El listener de fileInput está abajo en la sección de PDF Parser Logic
         
         ['dragenter', 'dragover'].forEach(e => {
             dropZone.addEventListener(e, (ev) => {
@@ -645,6 +645,11 @@
 
         // Processing Logic
         async function processFiles(files) {
+            // NO procesar si estamos en la pestaña Parsear PDF
+            if (!document.getElementById('pdfParserView').classList.contains('hidden')) {
+                return;
+            }
+
             const pdfs = Array.from(files).filter(f => f.type === 'application/pdf');
             if (pdfs.length === 0) return;
 
