@@ -1,7 +1,7 @@
 const PDFParser = require('../pdf-parser');
-const busboy = require('busboy');
+const Busboy = require('busboy');
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Habilitar CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -16,7 +16,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const bb = busboy({ headers: req.headers });
+    const bb = Busboy({ headers: req.headers });
     const pdfBuffers = [];
     let uploadedFiles = 0;
 

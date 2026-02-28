@@ -1,13 +1,12 @@
 {
+  "buildCommand": "echo 'Vercel build'",
+  "outputDirectory": ".",
   "functions": {
     "api/**/*.js": {
-      "runtime": "nodejs18.x",
-      "memory": 3008,
-      "maxDuration": 60
+      "runtime": "nodejs18.x"
     }
   },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1.js" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
