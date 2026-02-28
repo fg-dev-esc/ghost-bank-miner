@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF a Excel - Parseador</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .drop-zone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .drop-zone.drag-over {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-12">
+                <h1 class="text-4xl font-bold text-gray-900 mb-4">PDF a Excel</h1>
+                <p class="text-lg text-gray-600">En caso de que falle el Renombrador, puedes hacerlo manual</p>
+            </div>
+
+            <!-- Main Card -->
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <!-- Drop Zone -->
+                <div class="mb-8">
+                    <label class="block text-sm font-medium text-gray-700 mb-4">
+                        Sube tus archivos PDF
+                    </label>
+                    <div class="drop-zone p-12 text-center cursor-pointer hover:border-blue-400" id="dropZone">
+                        <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                        <p class="text-gray-700 font-medium">Arrastra archivos aquí o haz clic para seleccionar</p>
+                        <p class="text-sm text-gray-500 mt-2">Soporta múltiples PDFs</p>
+                        <input type="file" id="fileInput" multiple accept=".pdf" class="hidden">
+                    </div>
+                </div>
+
+                <!-- File List -->
+                <div id="fileList" class="mb-8 hidden">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Archivos seleccionados</h3>
+                    <div class="space-y-2" id="selectedFiles"></div>
+                </div>
+
+                <!-- Upload Button -->
+                <div class="flex gap-4">
+                    <button id="uploadBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        Procesar PDFs
+                    </button>
+                    <button id="clearBtn" class="px-6 bg-gray-200 hover:bg-gray-300 text-gray-900 font-medium py-3 rounded-lg transition" style="display: none;">
+                        Limpiar
+                    </button>
+                </div>
+
+                <!-- Progress -->
+                <div id="progress" class="mt-8 hidden">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Progreso</h3>
+                    <div class="space-y-3" id="progressList"></div>
+                </div>
+
+                <!-- Results -->
+                <div id="results" class="mt-8 hidden">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Resultados</h3>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                        <p class="text-green-800"><span id="successCount"></span> archivo(s) procesado(s) exitosamente</p>
+                    </div>
+                    <div class="space-y-2" id="resultsList"></div>
+                </div>
+
+                <!-- Error -->
+                <div id="error" class="mt-8 hidden">
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <p class="text-red-800 font-medium">Error al procesar archivos</p>
+                        <p id="errorMessage" class="text-red-700 text-sm mt-2"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Box -->
+            <div class="mt-8 grid md:grid-cols-2 gap-6">
+                <div class="bg-blue-50 rounded-lg p-6 border border-blue-200">
+                    <h3 class="text-lg font-semibold text-blue-900 mb-3">¿Qué extrae?</h3>
+                    <ul class="text-sm text-blue-800 space-y-2">
+                        <li>✓ Campos clave-valor (Nombre: Juan)</li>
+                        <li>✓ Tablas encontradas en el PDF</li>
+                        <li>✓ Texto completo del documento</li>
+                        <li>✓ Metadatos del PDF</li>
+                    </ul>
+                </div>
+                <div class="bg-amber-50 rounded-lg p-6 border border-amber-200">
+                    <h3 class="text-lg font-semibold text-amber-900 mb-3">Manual para PDFs defectuosos</h3>
+                    <p class="text-sm text-amber-800">Si un PDF no se parsea bien, el Excel mostrará todo el texto extraído en la sección "TEXTO COMPLETO" para que lo puedas editar manualmente. ¡Fácil de arreglar!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const selectedFiles = document.getElementById('selectedFiles');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const progress = document.getElementById('progress');
+        const progressList = document.getElementById('progressList');
+        const results = document.getElementById('results');
+        const resultsList = document.getElementById('resultsList');
+        const error = document.getElementById('error');
+        const errorMessage = document.getElementById('errorMessage');
+
+        let files = [];
+
+        // Drag and drop
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            const droppedFiles = Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf');
+            handleFiles(droppedFiles);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(Array.from(e.target.files));
+        });
+
+        function handleFiles(newFiles) {
+            files = [...files, ...newFiles];
+            displayFiles();
+        }
+
+        function displayFiles() {
+            if (files.length === 0) {
+                fileList.classList.add('hidden');
+                uploadBtn.disabled = true;
+                clearBtn.style.display = 'none';
+                return;
+            }
+
+            fileList.classList.remove('hidden');
+            uploadBtn.disabled = false;
+            clearBtn.style.display = 'block';
+
+            selectedFiles.innerHTML = files.map((f, i) => `
+                <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
+                    <span class="text-sm text-gray-700">
+                        <strong>${f.name}</strong> (${(f.size / 1024 / 1024).toFixed(2)} MB)
+                    </span>
+                    <button onclick="removeFile(${i})" class="text-red-600 hover:text-red-800 text-sm font-medium">
+                        Eliminar
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function removeFile(index) {
+            files.splice(index, 1);
+            displayFiles();
+        }
+
+        clearBtn.addEventListener('click', () => {
+            files = [];
+            fileInput.value = '';
+            displayFiles();
+            progress.classList.add('hidden');
+            results.classList.add('hidden');
+            error.classList.add('hidden');
+        });
+
+        uploadBtn.addEventListener('click', async () => {
+            uploadBtn.disabled = true;
+            progress.classList.remove('hidden');
+            results.classList.add('hidden');
+            error.classList.add('hidden');
+            progressList.innerHTML = '';
+
+            const formData = new FormData();
+            files.forEach(f => formData.append('files', f));
+
+            progressList.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <div class="animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent"></div>
+                    <span class="text-gray-700">Procesando ${files.length} archivo(s)...</span>
+                </div>
+            `;
+
+            try {
+                const response = await fetch('/api/pdf-to-excel', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Error al procesar archivos');
+                }
+
+                // Mostrar resultados
+                progress.classList.add('hidden');
+                results.classList.remove('hidden');
+                document.getElementById('successCount').textContent = data.results.length;
+
+                resultsList.innerHTML = data.results.map(r => `
+                    <div class="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
+                        <div>
+                            <p class="font-medium text-gray-900">${r.original}</p>
+                            <p class="text-sm text-gray-600">→ ${r.output}</p>
+                        </div>
+                        <a href="/uploads/${r.output}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-medium text-sm">
+                            Descargar
+                        </a>
+                    </div>
+                `).join('');
+
+                files = [];
+                fileInput.value = '';
+                displayFiles();
+            } catch (err) {
+                progress.classList.add('hidden');
+                error.classList.remove('hidden');
+                errorMessage.textContent = err.message;
+            } finally {
+                uploadBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

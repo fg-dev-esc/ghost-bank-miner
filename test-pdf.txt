@@ -1,0 +1,9 @@
+Nombre: Juan Pérez García
+Correo: juan.perez@example.com
+Teléfono: 555-123-4567
+Departamento: Ventas
+
+Monto Total    Estado      Fecha
+$1,000.00      Pagado      2025-02-01
+$2,500.00      Pendiente   2025-02-15
+$750.00        Cancelado   2025-01-20

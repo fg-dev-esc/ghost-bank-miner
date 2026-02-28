@@ -116,6 +116,12 @@
             border: 1px solid;
             border-color: inherit;
             padding: 0.75rem;
+        }
+
+        /* Tab active state icons */
+        .tab-report.border-brand i[data-lucide="file-pdf"] {
+            @apply text-zinc-900 dark:text-white;
+        }
             text-align: left;
         }
 
@@ -307,12 +313,21 @@
                             Reporte Detallado
                         </div>
                     </button>
+                    
+                    <button onclick="switchReportTab('pdfparser')" id="tabPdfParser" class="tab-report px-6 py-3 text-sm font-medium text-zinc-500 dark:text-zinc-400 border-b-2 border-transparent hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors whitespace-nowrap">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            Extraer PDF
+                        </div>
+                    </button>
+
                     <button onclick="switchReportTab('excel')" id="tabExcel" class="tab-report px-6 py-3 text-sm font-medium text-zinc-500 dark:text-zinc-400 border-b-2 border-transparent hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors whitespace-nowrap">
                         <div class="flex items-center gap-2">
                             <i data-lucide="sparkles" class="w-4 h-4"></i>
                             Fine Tuning para Excel
                         </div>
                     </button>
+                    
                 </div>
             </div>
 
@@ -473,6 +488,106 @@
                             class="hidden"
                             onchange="handleImageUpload(event)"
                         />
+                    </div>
+                </div>
+
+                <!-- Tab Content: PDF a Excel Parser -->
+                <div id="pdfParserView" class="tab-content hidden">
+                    <div class="p-8 bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-950 dark:to-zinc-900 min-h-[480px]">
+                        <div class="max-w-4xl mx-auto">
+                            <!-- Header -->
+                            <div class="mb-12">
+                                <div class="flex items-center gap-4 mb-4">
+                                    <div class="p-3 bg-brand/10 rounded-lg">
+                                        <i data-lucide="file-pdf" class="w-8 h-8 text-brand"></i>
+                                    </div>
+                                    <div>
+                                        <h2 class="text-3xl font-bold text-zinc-900 dark:text-white">PDF a Excel</h2>
+                                        <p class="text-zinc-600 dark:text-zinc-400">Si falla el Renombrador, puedes hacerlo manual.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Drop Zone & Files -->
+                            <div class="mb-8">
+                                <!-- Drop Zone -->
+                                <div class="mb-8">
+                                    <div class="border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl p-8 text-center cursor-pointer hover:border-brand hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-all duration-300 group" id="pdfDropZone">
+                                        <div class="inline-block p-4 bg-brand/5 rounded-full group-hover:bg-brand/10 transition-all mb-4">
+                                            <svg class="h-12 w-12 text-brand group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                            </svg>
+                                        </div>
+                                        <p class="text-zinc-900 dark:text-white font-semibold text-lg mb-2">Arrastra PDF aquí</p>
+                                        <p class="text-sm text-zinc-600 dark:text-zinc-400 mb-4">o haz clic para seleccionar archivos</p>
+                                        <p class="text-xs text-zinc-500 dark:text-zinc-500">Soporta múltiples archivos PDF</p>
+                                        <input type="file" id="pdfFileInput" multiple accept=".pdf" class="hidden">
+                                    </div>
+                                </div>
+
+                                <!-- File List -->
+                                <div id="pdfFileList" class="hidden">
+                                    <h3 class="text-lg font-semibold text-zinc-900 dark:text-white mb-4 flex items-center gap-2">
+                                        <i data-lucide="file" class="w-5 h-5 text-brand"></i>
+                                        Archivos seleccionados
+                                    </h3>
+                                    <div class="space-y-2 max-h-48 overflow-y-auto" id="pdfSelectedFiles"></div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="flex gap-3 mb-8" id="actionButtons">
+                                <button id="pdfUploadBtn" class="flex-1 bg-brand hover:bg-brand-hover text-white font-semibold py-4 px-6 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2" disabled>
+                                    <i data-lucide="zap" class="w-5 h-5"></i>
+                                    Procesar PDFs
+                                </button>
+                                <button id="pdfClearBtn" class="px-6 bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white font-semibold py-4 rounded-lg transition flex items-center justify-center gap-2" style="display: none;">
+                                    <i data-lucide="x" class="w-5 h-5"></i>
+                                    Limpiar
+                                </button>
+                            </div>
+
+                            <!-- Progress -->
+                            <div id="pdfProgress" class="hidden mb-8">
+                                <div class="bg-white dark:bg-zinc-800 rounded-lg p-6 border border-zinc-200 dark:border-zinc-700">
+                                    <div class="flex items-center gap-4">
+                                        <div class="animate-spin rounded-full h-10 w-10 border-3 border-brand border-t-transparent"></div>
+                                        <div>
+                                            <p class="font-semibold text-zinc-900 dark:text-white">Procesando archivos...</p>
+                                            <p id="pdfProgressText" class="text-sm text-zinc-600 dark:text-zinc-400 mt-1"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Results -->
+                            <div id="pdfResults" class="hidden">
+                                <div class="mb-8">
+                                    <div class="flex items-center gap-3 mb-8 p-6 bg-emerald-50 dark:bg-emerald-950/20 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                                        <i data-lucide="check-circle" class="w-8 h-8 text-emerald-600 dark:text-emerald-400"></i>
+                                        <div>
+                                            <p class="font-semibold text-emerald-900 dark:text-emerald-200">¡Procesamiento completado!</p>
+                                            <p class="text-sm text-emerald-800 dark:text-emerald-300"><span id="pdfSuccessCount"></span> archivo(s) procesado(s) exitosamente</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="pdfResultsList" class="space-y-8">
+                                    <!-- Los resultados se inyectan aquí -->
+                                </div>
+                            </div>
+
+                            <!-- Error -->
+                            <div id="pdfError" class="hidden">
+                                <div class="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-6 flex gap-4">
+                                    <i data-lucide="alert-circle" class="w-8 h-8 text-red-600 dark:text-red-400 shrink-0"></i>
+                                    <div>
+                                        <p class="font-semibold text-red-900 dark:text-red-200 mb-1">Error al procesar</p>
+                                        <p id="pdfErrorMessage" class="text-red-800 dark:text-red-300 text-sm"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -775,6 +890,7 @@
             document.getElementById('listView').classList.toggle('hidden', tabName !== 'list');
             document.getElementById('tableView').classList.toggle('hidden', tabName !== 'table');
             document.getElementById('excelView').classList.toggle('hidden', tabName !== 'excel');
+            document.getElementById('pdfParserView').classList.toggle('hidden', tabName !== 'pdfparser');
             lucide.createIcons();
         }
 
@@ -1339,6 +1455,274 @@ Sé extremadamente detallista y específico.`;
                         handleImageUpload({ target: fileInput });
                     }
                 });
+            }
+        });
+
+        // ========== PDF Parser Logic ==========
+
+        function copyToClipboard(text, button) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalHTML = button.innerHTML;
+                const originalClasses = button.className;
+
+                button.innerHTML = '<i data-lucide="check" class="w-3 h-3"></i> Copiado!';
+                button.className = 'text-xs px-3 py-1 rounded bg-emerald-200 dark:bg-emerald-700 text-emerald-900 dark:text-emerald-100 flex items-center gap-1';
+
+                lucide.createIcons();
+
+                setTimeout(() => {
+                    button.innerHTML = originalHTML;
+                    button.className = originalClasses;
+                    lucide.createIcons();
+                }, 2000);
+            }).catch(() => {
+                alert('Error al copiar al portapapeles');
+            });
+        }
+
+        const pdfDropZone = document.getElementById('pdfDropZone');
+        const pdfFileInput = document.getElementById('pdfFileInput');
+        const pdfFileList = document.getElementById('pdfFileList');
+        const pdfSelectedFiles = document.getElementById('pdfSelectedFiles');
+        const pdfUploadBtn = document.getElementById('pdfUploadBtn');
+        const pdfClearBtn = document.getElementById('pdfClearBtn');
+        const pdfProgress = document.getElementById('pdfProgress');
+        const pdfProgressText = document.getElementById('pdfProgressText');
+        const pdfResults = document.getElementById('pdfResults');
+        const pdfResultsList = document.getElementById('pdfResultsList');
+        const pdfError = document.getElementById('pdfError');
+        const pdfErrorMessage = document.getElementById('pdfErrorMessage');
+
+        let pdfFiles = [];
+
+        // Drag and drop
+        pdfDropZone.addEventListener('click', () => pdfFileInput.click());
+
+        pdfDropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            pdfDropZone.classList.add('border-brand', 'bg-blue-50/50', 'dark:bg-blue-950/20');
+        });
+
+        pdfDropZone.addEventListener('dragleave', () => {
+            pdfDropZone.classList.remove('border-brand', 'bg-blue-50/50', 'dark:bg-blue-950/20');
+        });
+
+        pdfDropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            pdfDropZone.classList.remove('border-brand', 'bg-blue-50/50', 'dark:bg-blue-950/20');
+            const droppedFiles = Array.from(e.dataTransfer.files).filter(f => f.type === 'application/pdf');
+            handlePdfFiles(droppedFiles);
+        });
+
+        pdfFileInput.addEventListener('change', (e) => {
+            handlePdfFiles(Array.from(e.target.files));
+        });
+
+        function handlePdfFiles(newFiles) {
+            pdfFiles = [...pdfFiles, ...newFiles];
+            displayPdfFiles();
+        }
+
+        function displayPdfFiles() {
+            if (pdfFiles.length === 0) {
+                pdfFileList.classList.add('hidden');
+                pdfUploadBtn.disabled = true;
+                pdfClearBtn.style.display = 'none';
+                return;
+            }
+
+            pdfFileList.classList.remove('hidden');
+            pdfUploadBtn.disabled = false;
+            pdfClearBtn.style.display = 'block';
+
+            pdfSelectedFiles.innerHTML = pdfFiles.map((f, i) => `
+                <div class="flex justify-between items-center bg-white dark:bg-zinc-800 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:border-brand hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-all group">
+                    <div class="flex items-center gap-3 flex-1">
+                        <i data-lucide="file-pdf" class="w-5 h-5 text-red-500 shrink-0"></i>
+                        <div>
+                            <p class="font-medium text-zinc-900 dark:text-white text-sm truncate">${f.name}</p>
+                            <p class="text-xs text-zinc-500 dark:text-zinc-400">${(f.size / 1024).toFixed(0)} KB</p>
+                        </div>
+                    </div>
+                    <button onclick="removePdfFile(${i})" class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <i data-lucide="trash-2" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function removePdfFile(index) {
+            pdfFiles.splice(index, 1);
+            displayPdfFiles();
+        }
+
+        pdfClearBtn.addEventListener('click', () => {
+            pdfFiles = [];
+            pdfFileInput.value = '';
+            displayPdfFiles();
+            pdfProgress.classList.add('hidden');
+            pdfResults.classList.add('hidden');
+            pdfError.classList.add('hidden');
+        });
+
+        pdfUploadBtn.addEventListener('click', async () => {
+            pdfUploadBtn.disabled = true;
+            pdfProgress.classList.remove('hidden');
+            pdfResults.classList.add('hidden');
+            pdfError.classList.add('hidden');
+
+            const formData = new FormData();
+            pdfFiles.forEach(f => formData.append('files', f));
+
+            pdfProgressText.textContent = `Procesando ${pdfFiles.length} archivo(s)...`;
+
+            try {
+                const response = await fetch('/api/pdf-to-excel', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Error al procesar archivos');
+                }
+
+                // Mostrar resultados
+                pdfProgress.classList.add('hidden');
+                pdfResults.classList.remove('hidden');
+                document.getElementById('pdfSuccessCount').textContent = data.results.length;
+
+                pdfResultsList.innerHTML = data.results.map((r, idx) => {
+                    const fieldsData = Object.entries(r.fields).map(([k, v]) => k + ': ' + v).join('\n');
+                    const tablesData = r.tables.map((t, i) => 'Tabla ' + (i+1) + ':\n' + t.map(row => row.join('\t')).join('\n')).join('\n\n');
+                    return `
+                    <div class="bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
+                        <!-- Header del archivo -->
+                        <div class="bg-gradient-to-r from-brand/10 to-blue-500/10 dark:from-brand/20 dark:to-blue-500/20 p-6 border-b border-zinc-200 dark:border-zinc-700">
+                            <div class="flex items-center gap-4">
+                                <div class="p-3 bg-brand/20 rounded-lg">
+                                    <i data-lucide="file-pdf" class="w-6 h-6 text-brand"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-bold text-zinc-900 dark:text-white text-lg">${r.filename}</p>
+                                    <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">${r.pages} página(s)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contenido extraído -->
+                        <div class="p-6 space-y-6">
+                            <!-- Campos extraídos -->
+                            ${Object.keys(r.fields).length > 0 ? `
+                                <div>
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h4 class="font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
+                                            <i data-lucide="tag" class="w-5 h-5 text-amber-500"></i>
+                                            Campos Encontrados
+                                        </h4>
+                                        <button class="copyFieldsBtn text-xs px-3 py-1 rounded bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-zinc-900 dark:text-white transition-colors flex items-center gap-1">
+                                            <i data-lucide="copy" class="w-3 h-3"></i>
+                                            Copiar
+                                        </button>
+                                    </div>
+                                    <div class="grid md:grid-cols-2 gap-3">
+                                        ${Object.entries(r.fields).map(([key, value]) => `
+                                            <div class="bg-zinc-50 dark:bg-zinc-900 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700">
+                                                <p class="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wide">${key}</p>
+                                                <p class="text-sm text-zinc-900 dark:text-white mt-2 break-words">${value}</p>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+
+                            <!-- Tablas extraídas -->
+                            ${r.tables.length > 0 ? `
+                                <div>
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h4 class="font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
+                                            <i data-lucide="table" class="w-5 h-5 text-emerald-500"></i>
+                                            Tablas (${r.tables.length})
+                                        </h4>
+                                        <button class="copyTablesBtn text-xs px-3 py-1 rounded bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-zinc-900 dark:text-white transition-colors flex items-center gap-1">
+                                            <i data-lucide="copy" class="w-3 h-3"></i>
+                                            Copiar
+                                        </button>
+                                    </div>
+                                    <div class="space-y-4">
+                                        ${r.tables.map((table, tIdx) => `
+                                            <div class="overflow-x-auto border border-zinc-200 dark:border-zinc-700 rounded-lg">
+                                                <table class="w-full text-sm">
+                                                    <tbody>
+                                                        ${table.map((row, rIdx) => `
+                                                            <tr class="${rIdx === 0 ? 'bg-zinc-100 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-700' : 'border-b border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-900/50'}">
+                                                                ${row.map(cell => `
+                                                                    <td class="px-4 py-3 ${rIdx === 0 ? 'font-semibold text-zinc-900 dark:text-white' : 'text-zinc-700 dark:text-zinc-300'}">${cell}</td>
+                                                                `).join('')}
+                                                            </tr>
+                                                        `).join('')}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+
+                            <!-- Texto completo (expandible) -->
+                            <details class="border border-zinc-200 dark:border-zinc-700 rounded-lg">
+                                <summary class="cursor-pointer font-semibold text-zinc-900 dark:text-white p-4 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
+                                    <span class="flex items-center gap-2">
+                                        <i data-lucide="chevron-down" class="w-5 h-5 text-zinc-600 dark:text-zinc-400"></i>
+                                        Texto Completo
+                                    </span>
+                                </summary>
+                                <div class="p-4 bg-zinc-50 dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-700">
+                                    <button class="copyTextBtn mb-3 text-xs px-3 py-1 rounded bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-zinc-900 dark:text-white transition-colors flex items-center gap-1">
+                                        <i data-lucide="copy" class="w-3 h-3"></i>
+                                        Copiar todo
+                                    </button>
+                                    <p class="text-sm text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-300 dark:scrollbar-thumb-zinc-700">${r.fullText}</p>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                `}).join('');
+
+                // Agregar event listeners a los botones de copiar
+                document.querySelectorAll('.copyFieldsBtn').forEach((btn, idx) => {
+                    btn.addEventListener('click', function() {
+                        const fieldsData = Object.entries(data.results[idx].fields).map(([k, v]) => k + ': ' + v).join('\n');
+                        copyToClipboard(fieldsData, this);
+                    });
+                });
+
+                document.querySelectorAll('.copyTablesBtn').forEach((btn, idx) => {
+                    btn.addEventListener('click', function() {
+                        const tablesData = data.results[idx].tables.map((t, i) => 'Tabla ' + (i+1) + ':\n' + t.map(row => row.join('\t')).join('\n')).join('\n\n');
+                        copyToClipboard(tablesData, this);
+                    });
+                });
+
+                document.querySelectorAll('.copyTextBtn').forEach((btn, idx) => {
+                    btn.addEventListener('click', function() {
+                        copyToClipboard(data.results[idx].fullText, this);
+                    });
+                });
+
+                // Renderizar iconos de Lucide
+                lucide.createIcons();
+
+                pdfFiles = [];
+                pdfFileInput.value = '';
+                displayPdfFiles();
+            } catch (err) {
+                pdfProgress.classList.add('hidden');
+                pdfError.classList.remove('hidden');
+                pdfErrorMessage.textContent = err.message;
+            } finally {
+                pdfUploadBtn.disabled = false;
             }
         });
 

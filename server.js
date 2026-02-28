@@ -2,6 +2,7 @@ require('dotenv').config();
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const PDFParser = require('./pdf-parser');
 
 const PORT = 3000;
 
@@ -30,6 +31,59 @@ const server = http.createServer((req, res) => {
     }
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(env));
+    return;
+  }
+
+  // Endpoint: POST /api/pdf-to-excel → parsea PDF y retorna datos
+  if (req.method === 'POST' && req.url === '/api/pdf-to-excel') {
+    const busboy = require('busboy')({ headers: req.headers });
+    const pdfBuffers = [];
+
+    busboy.on('file', (fieldname, file, info) => {
+      const chunks = [];
+      file.on('data', (data) => chunks.push(data));
+      file.on('end', () => {
+        pdfBuffers.push({
+          filename: info.filename,
+          buffer: Buffer.concat(chunks),
+        });
+      });
+    });
+
+    busboy.on('finish', async () => {
+      try {
+        const results = [];
+        for (const pdfFile of pdfBuffers) {
+          const parser = new PDFParser();
+          const pdfData = await parser.parsePDF(pdfFile.buffer);
+          const fields = parser.extractFields(pdfData.text);
+          const tables = parser.extractTables(pdfData.text);
+
+          results.push({
+            filename: pdfFile.filename,
+            pages: pdfData.pages,
+            metadata: pdfData.metadata,
+            fields: fields,
+            tables: tables,
+            fullText: pdfData.text,
+            success: true,
+          });
+        }
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ results, message: 'PDFs procesados exitosamente' }));
+      } catch (error) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: error.message }));
+      }
+    });
+
+    busboy.on('error', (error) => {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: error.message }));
+    });
+
+    req.pipe(busboy);
     return;
   }
 
