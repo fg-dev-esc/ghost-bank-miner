@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <script>if(localStorage.getItem('theme')==='light'){document.documentElement.classList.remove('dark')}else{document.documentElement.classList.add('dark')}</script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>op [N] ref</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%231447e6;stop-opacity:1'/%3E%3Cstop offset='100%25' style='stop-color:%230e3bb3;stop-opacity:1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23grad)'/%3E%3Cg transform='translate(32,32)'%3E%3Cpath d='M-8,-12 L0,-6 L8,-12 L8,-4 L0,2 L-8,-4 Z' fill='%23ffffff' opacity='0.9'/%3E%3Cpath d='M-8,4 L0,10 L8,4 L8,12 L0,18 L-8,12 Z' fill='%23ffffff' opacity='0.6'/%3E%3Cpath d='M0,2 L0,10' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' opacity='0.8'/%3E%3C/g%3E%3Ccircle cx='32' cy='32' r='28' fill='none' stroke='%23ffffff' stroke-width='0.5' opacity='0.1'/%3E%3C/svg%3E">
@@ -377,15 +378,36 @@
                     <!-- Model Selector -->
                     <div class="border-b border-zinc-200 dark:border-zinc-800 p-3 bg-zinc-50 dark:bg-zinc-950 flex items-center justify-between">
                         <div class="flex items-center gap-3">
-                            <label for="modelSelect" class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Modelo:</label>
-                            <select
-                                id="modelSelect"
-                                class="px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand dark:focus:border-brand transition-all"
-                            >
-                                <option value="openai/gpt-oss-120b" selected>OpenAI GPT-OSS-120B</option>
-                                <option value="moonshotai/kimi-k2-instruct-0905">Moonshot Kimi-K2</option>
-                                <option value="qwen/qwen3-32b">Qwen3-32B (Thinking)</option>
-                            </select>
+                            <label class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Modelo:</label>
+                            <div class="relative" id="modelDropdownWrapper">
+                                <button
+                                    id="modelDropdownBtn"
+                                    onclick="toggleModelDropdown()"
+                                    class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand dark:focus:border-brand transition-all"
+                                >
+                                    <span id="modelDropdownLabel" class="flex items-center gap-1.5"><i data-lucide="zap" class="w-3.5 h-3.5 text-emerald-500"></i>OpenAI GPT-OSS-120B</span>
+                                    <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-zinc-400"></i>
+                                </button>
+                                <div
+                                    id="modelDropdownMenu"
+                                    class="hidden absolute left-0 top-full mt-1 z-50 min-w-max rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-lg py-1"
+                                >
+                                    <button onclick="selectModel('openai/gpt-oss-120b')" class="w-full flex items-center gap-2 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                                        <i data-lucide="zap" class="w-3.5 h-3.5 text-emerald-500 shrink-0"></i>
+                                        OpenAI GPT-OSS-120B
+                                    </button>
+                                    <button onclick="selectModel('moonshotai/kimi-k2-instruct-0905')" class="w-full flex items-center gap-2 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                                        <i data-lucide="moon" class="w-3.5 h-3.5 text-blue-400 shrink-0"></i>
+                                        Moonshot Kimi-K2
+                                    </button>
+                                    <button onclick="selectModel('qwen/qwen3-32b')" class="w-full flex items-center gap-2 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                                        <i data-lucide="brain" class="w-3.5 h-3.5 text-violet-500 shrink-0"></i>
+                                        Qwen3-32B (Thinking)
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- hidden input para mantener compatibilidad con getSelectedModel() -->
+                            <input type="hidden" id="modelSelect" value="openai/gpt-oss-120b">
                         </div>
                         <button
                             id="newChatBtn"
@@ -509,14 +531,7 @@
             );
         }
 
-        // Load saved theme on page load (default light)
         window.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            if (savedTheme === 'dark') {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
             lucide.createIcons();
         });
 
@@ -859,6 +874,33 @@ TEMAS EN LOS QUE ERES EXPERTO:
 - Funciones de texto (CONCATENAR, IZQUIERDA, DERECHA, etc.)
 - Funciones lógicas (SI, Y, O)
 - Administración de hojas de cálculo`;
+
+        const MODEL_META = {
+            'openai/gpt-oss-120b':               { label: 'OpenAI GPT-OSS-120B',   icon: 'zap',   color: 'text-emerald-500' },
+            'moonshotai/kimi-k2-instruct-0905':  { label: 'Moonshot Kimi-K2',       icon: 'moon',  color: 'text-blue-400'    },
+            'qwen/qwen3-32b':                    { label: 'Qwen3-32B (Thinking)',   icon: 'brain', color: 'text-violet-500'  },
+        };
+
+        function toggleModelDropdown() {
+            document.getElementById('modelDropdownMenu').classList.toggle('hidden');
+        }
+
+        function selectModel(value) {
+            const meta = MODEL_META[value];
+            document.getElementById('modelSelect').value = value;
+            document.getElementById('modelDropdownLabel').innerHTML =
+                `<span class="flex items-center gap-1.5"><i data-lucide="${meta.icon}" class="w-3.5 h-3.5 ${meta.color}"></i>${meta.label}</span>`;
+            document.getElementById('modelDropdownMenu').classList.add('hidden');
+            lucide.createIcons();
+        }
+
+        // Cerrar dropdown al hacer clic fuera
+        document.addEventListener('click', (e) => {
+            const wrapper = document.getElementById('modelDropdownWrapper');
+            if (wrapper && !wrapper.contains(e.target)) {
+                document.getElementById('modelDropdownMenu').classList.add('hidden');
+            }
+        });
 
         function getChatModel() {
             const modelSelect = document.getElementById('modelSelect');
