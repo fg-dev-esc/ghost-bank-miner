@@ -30,6 +30,14 @@ class PDFParser {
   }
 
   /**
+   * Extracts OP number from text (from Concepto field or anywhere)
+   */
+  extractOPNumber(text) {
+    const match = text.match(/OP\s+(\d+)/i);
+    return match ? match[1] : null;
+  }
+
+  /**
    * Extrae campos clave-valor del texto
    * Busca patrones como "Campo: Valor" o "Campo = Valor"
    */
@@ -47,6 +55,14 @@ class PDFParser {
         // Filtra líneas que parecen ser campos válidos
         if (key.length > 2 && key.length < 100 && value.length > 0) {
           fields[key] = value;
+          
+          // Si es el campo Concepto, extraer y validar OP number
+          if (key === 'Concepto') {
+            const opNumber = this.extractOPNumber(value);
+            if (opNumber) {
+              fields['OP_Number'] = opNumber;
+            }
+          }
         }
       }
     }

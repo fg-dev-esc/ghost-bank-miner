@@ -706,12 +706,12 @@
                     const text = textContent.items.map(i => i.str).join(' ');
 
                     const match = text.match(/op[\s\.\-\:]*(\d+)[\s\.\-\:]*ref/i);
+                    const opMatch = text.match(/Concepto[\s:]*.*?OP\s+(\d+)/i);
 
                     if (match) {
                         const baseNumber = match[1];
                         let newName = `${baseNumber}.pdf`;
 
-                        // Manejar duplicados agregando sufijo
                         if (fileNameCount[baseNumber]) {
                             fileNameCount[baseNumber]++;
                             newName = `${baseNumber}_${fileNameCount[baseNumber]}.pdf`;
@@ -719,11 +719,9 @@
                             fileNameCount[baseNumber] = 1;
                         }
 
-                        // Guardar el archivo original sin modificar
                         zip.file(newName, file, {binary: true});
                         hasFiles = true;
 
-                        // Extraer contexto alrededor del patrón
                         const matchIndex = text.indexOf(match[0]);
                         const contextStart = Math.max(0, matchIndex - 50);
                         const contextEnd = Math.min(text.length, matchIndex + match[0].length + 50);
@@ -737,6 +735,47 @@
                             extractedText: extractedContext,
                             newName: newName,
                             status: 'Exitoso'
+                        });
+
+                        li.className = "flex items-center justify-between p-3 rounded-lg border border-green-200 dark:border-green-900/30 bg-green-50 dark:bg-green-900/10";
+                        li.innerHTML = `
+                            <div class="flex items-center gap-3 w-full overflow-hidden">
+                                <div class="w-8 h-8 rounded bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-green-600 dark:text-green-400 shrink-0">
+                                    <i data-lucide="check" class="w-4 h-4"></i>
+                                </div>
+                                <div class="flex flex-col min-w-0">
+                                    <span class="text-xs text-zinc-400 line-through truncate">${file.name}</span>
+                                    <span class="text-sm font-semibold text-zinc-900 dark:text-zinc-200 font-mono truncate text-brand">${newName}</span>
+                                </div>
+                            </div>
+                        `;
+                    } else if (opMatch) {
+                        const baseNumber = opMatch[1];
+                        let newName = `${baseNumber}.pdf`;
+
+                        if (fileNameCount[baseNumber]) {
+                            fileNameCount[baseNumber]++;
+                            newName = `${baseNumber}_${fileNameCount[baseNumber]}.pdf`;
+                        } else {
+                            fileNameCount[baseNumber] = 1;
+                        }
+
+                        zip.file(newName, file, {binary: true});
+                        hasFiles = true;
+
+                        const matchIndex = text.indexOf(opMatch[0]);
+                        const contextStart = Math.max(0, matchIndex - 50);
+                        const contextEnd = Math.min(text.length, matchIndex + opMatch[0].length + 50);
+                        const extractedContext = (contextStart > 0 ? '...' : '') +
+                                                text.substring(contextStart, contextEnd) +
+                                                (contextEnd < text.length ? '...' : '');
+
+                        processedData.push({
+                            index: processed + 1,
+                            originalName: file.name,
+                            extractedText: extractedContext,
+                            newName: newName,
+                            status: 'Exitoso (OP Concepto)'
                         });
 
                         li.className = "flex items-center justify-between p-3 rounded-lg border border-green-200 dark:border-green-900/30 bg-green-50 dark:bg-green-900/10";
