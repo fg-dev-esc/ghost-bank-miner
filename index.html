@@ -314,12 +314,14 @@
                         </div>
                     </button>
                     
+                    <!-- TODO: Re-enable Parsear PDF tab when needed
                     <button onclick="switchReportTab('pdfparser')" id="tabPdfParser" class="tab-report px-6 py-3 text-sm font-medium text-zinc-500 dark:text-zinc-400 border-b-2 border-transparent hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors whitespace-nowrap">
                         <div class="flex items-center gap-2">
                             <i data-lucide="file-text" class="w-4 h-4"></i>
                             Parsear PDF
                         </div>
                     </button>
+                    -->
 
                     <button onclick="switchReportTab('excel')" id="tabExcel" class="tab-report px-6 py-3 text-sm font-medium text-zinc-500 dark:text-zinc-400 border-b-2 border-transparent hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors whitespace-nowrap">
                         <div class="flex items-center gap-2">
@@ -441,7 +443,7 @@
                             <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-100 dark:bg-purple-900/30 mb-4">
                                 <i data-lucide="sparkles" class="w-8 h-8 text-purple-600 dark:text-purple-400"></i>
                             </div>
-                            <h3 class="text-xl font-semibold text-zinc-900 dark:text-white mb-2">IA para Excel</h3>
+                            <h3 class="text-xl font-semibold text-zinc-900 dark:text-white mb-2">Inferencia para análisis de datos</h3>
                             <p class="text-sm text-zinc-600 dark:text-zinc-400 max-w-md mx-auto">
                                 Escribe tu pregunta y pega (ctrl + v) hasta 5 capturas de tus hojas.
                             </p>
@@ -1409,12 +1411,12 @@ Sé extremadamente detallista y específico.`;
             placeholder.id = 'chatPlaceholder';
             placeholder.className = 'text-center';
             placeholder.innerHTML = `
-                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-zinc-100 dark:bg-zinc-800 mb-4">
-                    <i data-lucide="sparkles" class="w-8 h-8 text-zinc-400 dark:text-zinc-500"></i>
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-purple-100 dark:bg-purple-900/30 mb-4">
+                    <i data-lucide="sparkles" class="w-8 h-8 text-purple-600 dark:text-purple-400"></i>
                 </div>
-                <h4 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Tutor de Excel</h4>
-                <p class="text-sm text-zinc-600 dark:text-zinc-400 max-w-md">
-                    Escribe tu pregunta sobre Excel y obtén ayuda personalizada
+                <h3 class="text-xl font-semibold text-zinc-900 dark:text-white mb-2">Inferencia para análisis de datos</h3>
+                <p class="text-sm text-zinc-600 dark:text-zinc-400 max-w-md mx-auto">
+                    Escribe tu pregunta y pega (ctrl + v) hasta 5 capturas de tus hojas.
                 </p>
             `;
             messagesDiv.appendChild(placeholder);
