@@ -1,0 +1,1120 @@
+lucide.createIcons();
+
+// Theme Logic con View Transition API (círculo animado)
+async function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.classList.contains('dark');
+    const btn = document.querySelector('[onclick="toggleTheme()"]');
+
+    if (!document.startViewTransition || !btn) {
+        // Fallback sin animación
+        html.classList.toggle('dark');
+        localStorage.setItem('theme', isDark ? 'light' : 'dark');
+        lucide.createIcons();
+        return;
+    }
+
+    const { top, left, width, height } = btn.getBoundingClientRect();
+    const x = left + width / 2;
+    const y = top + height / 2;
+    const maxRadius = Math.hypot(
+        Math.max(left, window.innerWidth - left),
+        Math.max(top, window.innerHeight - top)
+    );
+
+    const transition = document.startViewTransition(() => {
+        html.classList.toggle('dark');
+        localStorage.setItem('theme', isDark ? 'light' : 'dark');
+        lucide.createIcons();
+    });
+
+    await transition.ready;
+
+    document.documentElement.animate(
+        {
+            clipPath: [
+                `circle(0px at ${x}px ${y}px)`,
+                `circle(${maxRadius}px at ${x}px ${y}px)`,
+            ],
+        },
+        {
+            duration: 400,
+            easing: 'ease-in-out',
+            pseudoElement: '::view-transition-new(root)',
+        }
+    );
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    lucide.createIcons();
+});
+
+// Elements
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const processArea = document.getElementById('processArea');
+const fileList = document.getElementById('fileList');
+const statusText = document.getElementById('statusText');
+const counter = document.getElementById('counter');
+const ping = document.getElementById('ping');
+const actionHeader = document.getElementById('actionHeader');
+const downloadBtn = document.getElementById('downloadBtn');
+const tabsContainer = document.getElementById('tabsContainer');
+const tableBody = document.getElementById('tableBody');
+const statusBar = document.getElementById('statusBar');
+const exportCsvBtn = document.getElementById('exportCsvBtn');
+
+let zip = new JSZip();
+let hasFiles = false;
+let fileNameCount = {}; // Para rastrear nombres duplicados
+let processedData = []; // Para almacenar datos de la tabla
+
+// Drag & Drop Events
+dropZone.addEventListener('click', () => fileInput.click());
+
+['dragenter', 'dragover'].forEach(e => {
+    dropZone.addEventListener(e, (ev) => {
+        ev.preventDefault();
+        dropZone.classList.add('border-brand', 'ring-4', 'ring-brand/10');
+    });
+});
+
+['dragleave', 'drop'].forEach(e => {
+    dropZone.addEventListener(e, (ev) => {
+        ev.preventDefault();
+        dropZone.classList.remove('border-brand', 'ring-4', 'ring-brand/10');
+    });
+});
+
+dropZone.addEventListener('drop', (e) => processFiles(e.dataTransfer.files));
+
+// Processing Logic
+async function processFiles(files) {
+    // NO procesar si estamos en la pestaña Parsear PDF
+    if (!document.getElementById('pdfParserView').classList.contains('hidden')) {
+        return;
+    }
+
+    const pdfs = Array.from(files).filter(f => f.type === 'application/pdf');
+    if (pdfs.length === 0) return;
+
+    // Reset UI
+    statusBar.classList.remove('hidden');
+    actionHeader.classList.add('hidden');
+
+    // Mostrar lista, ocultar placeholder de lista
+    document.getElementById('listPlaceholder').classList.add('hidden');
+    fileList.classList.remove('hidden');
+    fileList.innerHTML = '';
+
+    // Mostrar tabla, ocultar placeholder de tabla
+    document.getElementById('tablePlaceholder').classList.add('hidden');
+    document.getElementById('tableContainer').classList.remove('hidden');
+    tableBody.innerHTML = '';
+
+    zip = new JSZip();
+    hasFiles = false;
+    fileNameCount = {}; // Reset contador de nombres
+    processedData = []; // Reset datos de tabla
+    ping.style.display = 'inline-flex';
+    statusText.innerText = "PROCESANDO...";
+
+    // Deshabilitar botones mientras se procesa
+    exportCsvBtn.disabled = true;
+
+    lucide.createIcons();
+
+    let processed = 0;
+    const total = pdfs.length;
+
+    for (const file of pdfs) {
+        // UI Item Skeleton
+        const li = document.createElement('li');
+        li.className = "group flex items-center justify-between p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 transition-all";
+        li.innerHTML = `
+            <div class="flex items-center gap-3 w-full overflow-hidden">
+                <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-brand shrink-0"></i>
+                <span class="text-sm text-zinc-600 dark:text-zinc-400 truncate">${file.name}</span>
+            </div>
+        `;
+        fileList.appendChild(li);
+        lucide.createIcons();
+
+        // Process
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            const uint8Array = new Uint8Array(arrayBuffer);
+
+            const pdf = await pdfjsLib.getDocument({data: uint8Array}).promise;
+            const page = await pdf.getPage(1);
+            const textContent = await page.getTextContent();
+            const text = textContent.items.map(i => i.str).join(' ');
+
+            const match = text.match(/op[\s\.\-\:]*(\d+)[\s\.\-\:]*ref/i);
+            const opMatch = text.match(/Concepto[\s:]*.*?OP\s+(\d+)/i);
+
+            if (match) {
+                const baseNumber = match[1];
+                let newName = `${baseNumber}.pdf`;
+
+                if (fileNameCount[baseNumber]) {
+                    fileNameCount[baseNumber]++;
+                    newName = `${baseNumber}_${fileNameCount[baseNumber]}.pdf`;
+                } else {
+                    fileNameCount[baseNumber] = 1;
+                }
+
+                zip.file(newName, file, {binary: true});
+                hasFiles = true;
+
+                const matchIndex = text.indexOf(match[0]);
+                const contextStart = Math.max(0, matchIndex - 50);
+                const contextEnd = Math.min(text.length, matchIndex + match[0].length + 50);
+                const extractedContext = (contextStart > 0 ? '...' : '') +
+                                        text.substring(contextStart, contextEnd) +
+                                        (contextEnd < text.length ? '...' : '');
+
+                processedData.push({
+                    index: processed + 1,
+                    originalName: file.name,
+                    extractedText: extractedContext,
+                    newName: newName,
+                    status: 'Exitoso'
+                });
+
+                li.className = "flex items-center justify-between p-3 rounded-lg border border-green-200 dark:border-green-900/30 bg-green-50 dark:bg-green-900/10";
+                li.innerHTML = `
+                    <div class="flex items-center gap-3 w-full overflow-hidden">
+                        <div class="w-8 h-8 rounded bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-green-600 dark:text-green-400 shrink-0">
+                            <i data-lucide="check" class="w-4 h-4"></i>
+                        </div>
+                        <div class="flex flex-col min-w-0">
+                            <span class="text-xs text-zinc-400 line-through truncate">${file.name}</span>
+                            <span class="text-sm font-semibold text-zinc-900 dark:text-zinc-200 font-mono truncate text-brand">${newName}</span>
+                        </div>
+                    </div>
+                `;
+            } else if (opMatch) {
+                const baseNumber = opMatch[1];
+                let newName = `${baseNumber}.pdf`;
+
+                if (fileNameCount[baseNumber]) {
+                    fileNameCount[baseNumber]++;
+                    newName = `${baseNumber}_${fileNameCount[baseNumber]}.pdf`;
+                } else {
+                    fileNameCount[baseNumber] = 1;
+                }
+
+                zip.file(newName, file, {binary: true});
+                hasFiles = true;
+
+                const matchIndex = text.indexOf(opMatch[0]);
+                const contextStart = Math.max(0, matchIndex - 50);
+                const contextEnd = Math.min(text.length, matchIndex + opMatch[0].length + 50);
+                const extractedContext = (contextStart > 0 ? '...' : '') +
+                                        text.substring(contextStart, contextEnd) +
+                                        (contextEnd < text.length ? '...' : '');
+
+                processedData.push({
+                    index: processed + 1,
+                    originalName: file.name,
+                    extractedText: extractedContext,
+                    newName: newName,
+                    status: 'Exitoso'
+                });
+
+                li.className = "flex items-center justify-between p-3 rounded-lg border border-green-200 dark:border-green-900/30 bg-green-50 dark:bg-green-900/10";
+                li.innerHTML = `
+                    <div class="flex items-center gap-3 w-full overflow-hidden">
+                        <div class="w-8 h-8 rounded bg-green-100 dark:bg-green-900/40 flex items-center justify-center text-green-600 dark:text-green-400 shrink-0">
+                            <i data-lucide="check" class="w-4 h-4"></i>
+                        </div>
+                        <div class="flex flex-col min-w-0">
+                            <span class="text-xs text-zinc-400 line-through truncate">${file.name}</span>
+                            <span class="text-sm font-semibold text-zinc-900 dark:text-zinc-200 font-mono truncate text-brand">${newName}</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                throw new Error("No match");
+            }
+        } catch (e) {
+            // Guardar datos para la tabla (error)
+            processedData.push({
+                index: processed + 1,
+                originalName: file.name,
+                extractedText: 'N/A',
+                newName: 'N/A',
+                status: 'Error - No se encontró patrón'
+            });
+
+            li.className = "flex items-center justify-between p-3 rounded-lg border border-red-200 dark:border-red-900/30 bg-red-50 dark:bg-red-900/10";
+            li.innerHTML = `
+                <div class="flex items-center gap-3 w-full overflow-hidden">
+                    <div class="w-8 h-8 rounded bg-red-100 dark:bg-red-900/40 flex items-center justify-center text-red-500 shrink-0">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </div>
+                    <div class="flex flex-col min-w-0">
+                        <span class="text-sm text-zinc-700 dark:text-zinc-300 truncate">${file.name}</span>
+                        <span class="text-xs text-red-500 font-medium">No encontrado</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        processed++;
+        counter.innerText = `${processed}/${total}`;
+        lucide.createIcons();
+        fileList.scrollTop = fileList.scrollHeight; // Auto scroll
+    }
+
+    statusText.innerText = "PROCESO FINALIZADO";
+    ping.style.display = 'none';
+
+    if (hasFiles) {
+        actionHeader.classList.remove('hidden');
+        lucide.createIcons();
+    }
+
+    // Habilitar botón de CSV siempre que haya datos
+    if (processedData.length > 0) {
+        exportCsvBtn.disabled = false;
+    }
+    lucide.createIcons();
+
+    // Llenar tabla con los datos procesados
+    fillTable();
+}
+
+function fillTable() {
+    tableBody.innerHTML = '';
+    processedData.forEach((data) => {
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors';
+
+        const statusClass = data.status === 'Exitoso' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400';
+        const statusIcon = data.status === 'Exitoso' ? 'check-circle' : 'x-circle';
+
+        row.innerHTML = `
+            <td class="px-4 py-3 text-zinc-600 dark:text-zinc-400">${data.index}</td>
+            <td class="px-4 py-3 text-zinc-900 dark:text-zinc-100 font-medium break-words">${data.originalName}</td>
+            <td class="px-4 py-3 text-zinc-700 dark:text-zinc-300 text-xs break-words">
+                <div class="line-clamp-2" title="${data.extractedText}">${data.extractedText}</div>
+            </td>
+            <td class="px-4 py-3 text-brand font-mono font-semibold">${data.newName}</td>
+            <td class="px-4 py-3">
+                <div class="flex items-center gap-2 ${statusClass}">
+                    <i data-lucide="${statusIcon}" class="w-4 h-4"></i>
+                    <span class="text-xs font-medium whitespace-nowrap">${data.status}</span>
+                </div>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    });
+    lucide.createIcons();
+}
+
+function switchReportTab(tabName) {
+    // Update tab buttons
+    const tabs = document.querySelectorAll('.tab-report');
+    tabs.forEach(tab => {
+        let expectedId;
+        if (tabName === 'pdfparser') {
+            expectedId = 'tabPdfParser';
+        } else {
+            expectedId = 'tab' + tabName.charAt(0).toUpperCase() + tabName.slice(1);
+        }
+
+        if (tab.id === expectedId) {
+            tab.classList.add('border-brand', 'text-zinc-900', 'dark:text-zinc-100');
+            tab.classList.remove('border-transparent', 'text-zinc-500', 'dark:text-zinc-400');
+        } else {
+            tab.classList.remove('border-brand', 'text-zinc-900', 'dark:text-zinc-100');
+            tab.classList.add('border-transparent', 'text-zinc-500', 'dark:text-zinc-400');
+        }
+    });
+
+    // Mostrar/ocultar dropZone y elementos según la pestaña
+    const dropZone = document.getElementById('dropZone');
+    const actionHeader = document.getElementById('actionHeader');
+    const statusBar = document.getElementById('statusBar');
+
+    if (tabName === 'pdfparser') {
+        // En parseador, mostrar dropZone pero ocultar botones de descarga y status
+        dropZone.classList.remove('hidden');
+        actionHeader.classList.add('hidden');
+        statusBar.classList.add('hidden');
+    } else {
+        // En otras pestañas, mostrar dropZone
+        dropZone.classList.remove('hidden');
+        // actionHeader y statusBar se controlan por el procesamiento
+    }
+
+    // Update tab content
+    document.getElementById('listView').classList.toggle('hidden', tabName !== 'list');
+    document.getElementById('tableView').classList.toggle('hidden', tabName !== 'table');
+    document.getElementById('excelView').classList.toggle('hidden', tabName !== 'excel');
+    document.getElementById('pdfParserView').classList.toggle('hidden', tabName !== 'pdfparser');
+    lucide.createIcons();
+}
+
+function exportToCSV() {
+    if (processedData.length === 0) {
+        alert('No hay datos para exportar');
+        return;
+    }
+
+    // Crear CSV con encabezados
+    let csv = '#,Nombre Original,Contexto de la Extracción,Nuevo Nombre,Estado\n';
+    processedData.forEach(data => {
+        const row = [
+            data.index,
+            `"${data.originalName.replace(/"/g, '""')}"`,
+            `"${data.extractedText.replace(/"/g, '""')}"`,
+            `"${data.newName.replace(/"/g, '""')}"`,
+            `"${data.status.replace(/"/g, '""')}"`
+        ].join(',');
+        csv += row + '\n';
+    });
+
+    // Agregar BOM UTF-8 para que Excel reconozca los acentos
+    const BOM = '\uFEFF';
+    const csvWithBOM = BOM + csv;
+
+    // Descargar CSV
+    const blob = new Blob([csvWithBOM], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    const now = new Date();
+    let horas = now.getHours() % 12 || 12;
+    const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+    const fecha = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}_${String(horas).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}${ampm}`;
+    link.download = `reporte-extracción-pdf-${fecha}.csv`;
+    link.click();
+}
+
+function downloadZip() {
+    const originalText = downloadBtn.innerHTML;
+    downloadBtn.disabled = true;
+    downloadBtn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Comprimiendo...</span>`;
+    lucide.createIcons();
+
+    zip.generateAsync({type:"blob"}).then(function(content) {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(content);
+        const now = new Date();
+        let horas = now.getHours() % 12 || 12;
+        const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+        const fecha = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}-${String(horas).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}${ampm}`;
+        link.download = `reporte-extracción-pdf-${fecha}.zip`;
+        link.click();
+
+        setTimeout(() => {
+            downloadBtn.disabled = false;
+            downloadBtn.innerHTML = originalText;
+            lucide.createIcons();
+        }, 1000);
+    });
+}
+
+// ===== Chat - Asistente de Excel (Groq API) =====
+let GROQ_API_KEY = '';
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+
+// Cargar API key desde el servidor
+fetch('/api/env')
+  .then(r => r.json())
+  .then(env => { GROQ_API_KEY = env.GROQ_API_KEY; })
+  .catch(() => console.warn('No se pudo cargar GROQ_API_KEY'));
+
+let chatHistory = []; // Almacenar historial de chat
+let uploadedImages = []; // Almacenar imágenes en base64
+
+// System prompt: Tutor de Excel en español de México
+const SYSTEM_PROMPT = `Eres un tutor experto de Microsoft Excel en español de México. Tu objetivo es enseñar y ayudar a los usuarios a usar Excel de manera efectiva.
+
+CARACTERÍSTICAS DE TU RESPUESTA:
+- Responde siempre en español de México, usando términos locales
+- Sé amable, paciente y educativo
+- Proporciona ejemplos prácticos cuando sea posible
+- Usa fórmulas de Excel reales con sintaxis correcta
+- Explica conceptos paso a paso
+- Si el usuario pregunta algo fuera de Excel, redirige gentilmente a Excel
+- Usa viñetas (•) y numeración para claridad
+- Si menciones accesos directos, especifica "Ctrl+X" para Windows o "Cmd+X" para Mac
+
+TEMAS EN LOS QUE ERES EXPERTO:
+- Fórmulas y funciones (SUMA, PROMEDIO, SI, BUSCARV, INDICE, COINCIDIR, etc.)
+- Análisis de datos (Tablas dinámicas, Filtros, Validación de datos)
+- Gráficos y visualización
+- Funciones de fecha y hora
+- Formato condicional
+- Macros y VBA (básico)
+- Importación y limpieza de datos
+- Funciones de texto (CONCATENAR, IZQUIERDA, DERECHA, etc.)
+- Funciones lógicas (SI, Y, O)
+- Administración de hojas de cálculo`;
+
+const MODEL_META = {
+    'openai/gpt-oss-120b':               { label: 'OpenAI GPT-OSS-120B',   icon: 'zap',   color: 'text-emerald-500' },
+    'moonshotai/kimi-k2-instruct-0905':  { label: 'Moonshot Kimi-K2',       icon: 'moon',  color: 'text-blue-400'    },
+    'qwen/qwen3-32b':                    { label: 'Qwen3-32B (Thinking)',   icon: 'brain', color: 'text-violet-500'  },
+};
+
+function toggleModelDropdown() {
+    document.getElementById('modelDropdownMenu').classList.toggle('hidden');
+}
+
+function selectModel(value) {
+    const meta = MODEL_META[value];
+    document.getElementById('modelSelect').value = value;
+    document.getElementById('modelDropdownLabel').innerHTML =
+        `<span class="flex items-center gap-1.5"><i data-lucide="${meta.icon}" class="w-3.5 h-3.5 ${meta.color}"></i>${meta.label}</span>`;
+    document.getElementById('modelDropdownMenu').classList.add('hidden');
+    lucide.createIcons();
+}
+
+// Cerrar dropdown al hacer clic fuera
+document.addEventListener('click', (e) => {
+    const wrapper = document.getElementById('modelDropdownWrapper');
+    if (wrapper && !wrapper.contains(e.target)) {
+        document.getElementById('modelDropdownMenu').classList.add('hidden');
+    }
+});
+
+function getChatModel() {
+    const modelSelect = document.getElementById('modelSelect');
+    return modelSelect ? modelSelect.value : 'openai/gpt-oss-120b';
+}
+
+// Manejar carga de imágenes
+function handleImageUpload(event) {
+    const files = Array.from(event.target.files);
+    const uploadedImagesDiv = document.getElementById('uploadedImages');
+
+    files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const base64 = e.target.result;
+            uploadedImages.push({
+                name: file.name,
+                base64: base64
+            });
+
+            // Mostrar miniatura
+            const imgContainer = document.createElement('div');
+            imgContainer.className = 'relative';
+            imgContainer.innerHTML = `
+                <img src="${base64}" class="h-16 w-16 rounded-lg object-cover border border-zinc-300 dark:border-zinc-700">
+                <button
+                    onclick="removeImage('${uploadedImages.length - 1}')"
+                    class="absolute -top-2 -right-2 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors"
+                >
+                    ×
+                </button>
+            `;
+            uploadedImagesDiv.appendChild(imgContainer);
+        };
+        reader.readAsDataURL(file);
+    });
+
+    uploadedImagesDiv.classList.remove('hidden');
+    event.target.value = ''; // Reset input
+    lucide.createIcons();
+}
+
+// Remover imagen
+function removeImage(index) {
+    uploadedImages.splice(index, 1);
+    const uploadedImagesDiv = document.getElementById('uploadedImages');
+    uploadedImagesDiv.innerHTML = '';
+
+    if (uploadedImages.length === 0) {
+        uploadedImagesDiv.classList.add('hidden');
+    } else {
+        uploadedImages.forEach((img, i) => {
+            const imgContainer = document.createElement('div');
+            imgContainer.className = 'relative';
+            imgContainer.innerHTML = `
+                <img src="${img.base64}" class="h-16 w-16 rounded-lg object-cover border border-zinc-300 dark:border-zinc-700">
+                <button
+                    onclick="removeImage(${i})"
+                    class="absolute -top-2 -right-2 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors"
+                >
+                    ×
+                </button>
+            `;
+            uploadedImagesDiv.appendChild(imgContainer);
+        });
+    }
+    lucide.createIcons();
+}
+
+function addChatMessage(text, isUser = true) {
+    const messagesDiv = document.getElementById('chatMessages');
+
+    // Remover placeholder cuando se agregue el primer mensaje
+    const placeholder = document.getElementById('chatPlaceholder');
+    if (placeholder) {
+        placeholder.remove();
+        messagesDiv.classList.remove('flex', 'items-center', 'justify-center');
+    }
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`;
+
+    const contentDiv = document.createElement('div');
+
+    if (isUser) {
+        contentDiv.className = 'max-w-xs px-4 py-2 rounded-lg bg-brand text-white break-words';
+        contentDiv.textContent = text;
+    } else {
+        contentDiv.className = 'max-w-2xl px-4 py-3 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 markdown-content';
+
+        // Separar bloque <think> del contenido principal
+        const thinkMatch = text.match(/^<think>([\s\S]*?)<\/think>\s*/);
+        if (thinkMatch) {
+            const thinkContent = thinkMatch[1].trim();
+            const mainContent = text.slice(thinkMatch[0].length).trim();
+
+            const thinkDiv = document.createElement('details');
+            thinkDiv.className = 'mb-3 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-900 text-xs text-zinc-500 dark:text-zinc-400';
+            thinkDiv.innerHTML = `
+                <summary class="cursor-pointer px-3 py-2 font-medium select-none list-none flex items-center gap-1">
+                    <span style="font-size:0.65rem">▶</span> Cadena de Pensamiento
+                </summary>
+                <div class="px-3 pb-3 pt-1 whitespace-pre-wrap leading-relaxed">${thinkContent}</div>
+            `;
+            contentDiv.appendChild(thinkDiv);
+
+            const mainDiv = document.createElement('div');
+            mainDiv.innerHTML = marked.parse(mainContent);
+            contentDiv.appendChild(mainDiv);
+        } else {
+            contentDiv.innerHTML = marked.parse(text);
+        }
+
+        // Highlight código si está disponible
+        if (typeof hljs !== 'undefined') {
+            contentDiv.querySelectorAll('pre code').forEach(block => {
+                hljs.highlightElement(block);
+            });
+        }
+    }
+
+    // Wrapper relativo para posicionar el botón copy
+    const wrapperDiv = document.createElement('div');
+    wrapperDiv.className = 'relative group';
+    wrapperDiv.appendChild(contentDiv);
+
+    const copyBtn = document.createElement('button');
+    copyBtn.title = 'Copiar';
+    copyBtn.className = `absolute bottom-1 ${isUser ? 'left-1' : 'right-1'} opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-zinc-500 dark:text-zinc-300`;
+    copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+    copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(text).then(() => {
+            copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+            setTimeout(() => {
+                copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+            }, 1500);
+        });
+    });
+    wrapperDiv.appendChild(copyBtn);
+
+    messageDiv.appendChild(wrapperDiv);
+    messagesDiv.appendChild(messageDiv);
+
+    // Usuario → scroll al fondo. Asistente → scroll al inicio del mensaje
+    if (isUser) {
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    } else {
+        messageDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Mostrar botón "Nueva" y crecer el container cuando hay mensajes
+    const newChatBtn = document.getElementById('newChatBtn');
+    if (newChatBtn && messagesDiv.children.length > 0) {
+        newChatBtn.classList.remove('hidden');
+        newChatBtn.classList.add('flex');
+        const excelView = document.getElementById('excelView');
+        if (excelView) {
+            excelView.classList.remove('h-[340px]');
+            excelView.classList.add('h-[440px]');
+        }
+    }
+
+    lucide.createIcons();
+}
+
+function addChatImage(base64) {
+    const messagesDiv = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'flex justify-end mb-4';
+
+    const imgContainer = document.createElement('div');
+    imgContainer.className = 'max-w-xs';
+    imgContainer.innerHTML = `<img src="${base64}" class="max-h-48 rounded-lg border border-brand/30">`;
+
+    messageDiv.appendChild(imgContainer);
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function addChatTyping() {
+    const messagesDiv = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.id = 'typingIndicator';
+    messageDiv.className = 'flex justify-start';
+
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'px-4 py-3 rounded-lg bg-zinc-200 dark:bg-zinc-800';
+    contentDiv.innerHTML = `
+        <div class="flex gap-1">
+            <div class="w-2 h-2 rounded-full bg-zinc-600 dark:bg-zinc-400 animate-bounce"></div>
+            <div class="w-2 h-2 rounded-full bg-zinc-600 dark:bg-zinc-400 animate-bounce" style="animation-delay: 0.1s"></div>
+            <div class="w-2 h-2 rounded-full bg-zinc-600 dark:bg-zinc-400 animate-bounce" style="animation-delay: 0.2s"></div>
+        </div>
+    `;
+
+    messageDiv.appendChild(contentDiv);
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+async function sendChatMessage() {
+    const chatInput = document.getElementById('chatInput');
+    const chatSendBtn = document.getElementById('chatSendBtn');
+    const message = chatInput.value.trim();
+
+    if (!message && uploadedImages.length === 0) return;
+
+    // Mostrar mensaje del usuario con imágenes
+    if (!message && uploadedImages.length > 0) {
+        // Mensaje con icono Lucide en lugar de emoji
+        const messagesDiv = document.getElementById('chatMessages');
+        const placeholder = document.getElementById('chatPlaceholder');
+        if (placeholder) {
+            placeholder.remove();
+            messagesDiv.classList.remove('flex', 'items-center', 'justify-center');
+        }
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'flex justify-end mb-4';
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'max-w-xs px-4 py-2 rounded-lg bg-brand text-white break-words flex items-center gap-2';
+        contentDiv.innerHTML = '<i data-lucide="image" class="w-4 h-4 shrink-0"></i><span>Imagen enviada</span>';
+        messageDiv.appendChild(contentDiv);
+        messagesDiv.appendChild(messageDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        lucide.createIcons({ nodes: [contentDiv] });
+    } else {
+        addChatMessage(message, true);
+    }
+    if (uploadedImages.length > 0) {
+        uploadedImages.forEach(img => {
+            addChatImage(img.base64);
+        });
+    }
+
+    // Limpiar input y deshabilitar botón
+    chatInput.value = '';
+    chatSendBtn.disabled = true;
+    document.getElementById('uploadedImages').classList.add('hidden');
+    document.getElementById('uploadedImages').innerHTML = '';
+
+    let finalMessage = message;
+    let imagesToProcess = uploadedImages.slice(); // Copia del array
+    uploadedImages = [];
+    addChatTyping();
+
+    try {
+        // Si hay imágenes, primero procesarlas con Llama para obtener contexto detallado
+        if (imagesToProcess.length > 0) {
+            const imageContextPrompt = `Analiza esta/s imagen/es con MÁXIMO DETALLE. Describe:
+- Qué hay en la imagen (tablas, gráficos, fórmulas, datos, etc)
+- Estructura y contenido específico
+- Detalles técnicos relevantes
+- Cualquier texto visible
+- Contexto y propósito aparente
+
+Sé extremadamente detallista y específico.`;
+
+            const visionMessages = [
+                {
+                    role: 'user',
+                    content: [
+                        { type: 'text', text: imageContextPrompt }
+                    ]
+                }
+            ];
+
+            // Agregar imágenes al primer mensaje
+            imagesToProcess.forEach(img => {
+                visionMessages[0].content.push({
+                    type: 'image_url',
+                    image_url: { url: img.base64 }
+                });
+            });
+
+            // Llamar a Llama para análisis de imágenes
+            const visionResponse = await fetch(GROQ_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${GROQ_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+                    messages: visionMessages,
+                    temperature: 0.7,
+                    max_completion_tokens: 3584,
+                    top_p: 0.9,
+                    stream: false
+                })
+            });
+
+            if (!visionResponse.ok) {
+                const errorData = await visionResponse.json();
+                throw new Error(`Error en análisis de imagen: ${errorData.error?.message || visionResponse.status}`);
+            }
+
+            const visionData = await visionResponse.json();
+            const imageContext = visionData.choices[0].message.content;
+
+            // Combinar la pregunta original con el contexto de la imagen
+            finalMessage = `CONTEXTO DE LA IMAGEN:\n${imageContext}\n\nPREGUNTA DEL USUARIO:\n${message}`;
+        }
+
+        // Ahora enviar a el modelo seleccionado por el usuario con el contexto o la pregunta original
+        const messageContent = finalMessage;
+        chatHistory.push({
+            role: 'user',
+            content: messageContent
+        });
+
+        const userModel = getChatModel();
+
+        const response = await fetch(GROQ_API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${GROQ_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: userModel,
+                messages: [
+                    { role: 'system', content: SYSTEM_PROMPT },
+                    ...chatHistory
+                ],
+                temperature: 0.7,
+                    max_completion_tokens: 3584,
+                    top_p: 0.9,
+                stream: false
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error?.message || `Error HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const assistantMessage = data.choices[0].message.content;
+
+        // Remover typing indicator
+        const typingIndicator = document.getElementById('typingIndicator');
+        if (typingIndicator) typingIndicator.remove();
+
+        // Mostrar respuesta del asistente
+        addChatMessage(assistantMessage, false);
+        chatHistory.push({ role: 'assistant', content: assistantMessage });
+
+    } catch (error) {
+        // Remover typing indicator en caso de error
+        const typingIndicator = document.getElementById('typingIndicator');
+        if (typingIndicator) typingIndicator.remove();
+
+        addChatMessage(`❌ Error: ${error.message}. Intenta de nuevo.`, false);
+    } finally {
+        chatSendBtn.disabled = false;
+        chatInput.focus();
+    }
+}
+
+// Resetear conversación
+function resetChat() {
+    // Limpiar historial
+    chatHistory = [];
+
+    // Limpiar mensajes visibles y mostrar placeholder
+    const messagesDiv = document.getElementById('chatMessages');
+    messagesDiv.innerHTML = '';
+    messagesDiv.classList.add('flex', 'items-center', 'justify-center');
+
+    const placeholder = document.createElement('div');
+    placeholder.id = 'chatPlaceholder';
+    placeholder.className = 'text-center';
+    placeholder.innerHTML = `
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-zinc-100 dark:bg-zinc-800 mb-4">
+            <i data-lucide="sparkles" class="w-8 h-8 text-zinc-400 dark:text-zinc-500"></i>
+        </div>
+        <h4 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Tutor de Excel</h4>
+        <p class="text-sm text-zinc-600 dark:text-zinc-400 max-w-md">
+            Escribe tu pregunta sobre Excel y obtén ayuda personalizada
+        </p>
+    `;
+    messagesDiv.appendChild(placeholder);
+
+    // Ocultar botón "Nueva" y volver al tamaño original
+    const newChatBtn = document.getElementById('newChatBtn');
+    if (newChatBtn) {
+        newChatBtn.classList.add('hidden');
+        newChatBtn.classList.remove('flex');
+    }
+    const excelView = document.getElementById('excelView');
+    if (excelView) {
+        excelView.classList.remove('h-[550px]');
+        excelView.classList.add('h-[340px]');
+    }
+
+    // Limpiar input
+    document.getElementById('chatInput').value = '';
+    document.getElementById('chatInput').focus();
+
+    // Recrear iconos
+    lucide.createIcons();
+}
+
+// Permitir envío con Enter y Ctrl+V para pegar imágenes
+document.addEventListener('DOMContentLoaded', () => {
+    const chatInput = document.getElementById('chatInput');
+    if (chatInput) {
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        });
+
+        // Ctrl+V para pegar imágenes
+        chatInput.addEventListener('paste', (e) => {
+            const items = e.clipboardData?.items;
+            if (!items) return;
+
+            let hasImages = false;
+            const files = [];
+
+            for (let item of items) {
+                if (item.kind === 'file' && item.type.startsWith('image/')) {
+                    hasImages = true;
+                    files.push(item.getAsFile());
+                }
+            }
+
+            if (hasImages) {
+                e.preventDefault();
+                // Simular un evento change con los archivos pegados
+                const dataTransfer = new DataTransfer();
+                files.forEach(file => dataTransfer.items.add(file));
+                const fileInput = document.getElementById('imageInput');
+                fileInput.files = dataTransfer.files;
+                handleImageUpload({ target: fileInput });
+            }
+        });
+    }
+});
+
+// ========== PDF Parser Logic (reutiliza dropZone principal) ==========
+
+function copyToClipboard(text, button) {
+    navigator.clipboard.writeText(text).then(() => {
+        const originalHTML = button.innerHTML;
+        const originalClasses = button.className;
+
+        button.innerHTML = '<i data-lucide="check" class="w-3 h-3"></i> Copiado!';
+        button.className = 'text-xs px-3 py-1 rounded bg-emerald-200 dark:bg-emerald-700 text-emerald-900 dark:text-emerald-100 flex items-center gap-1';
+
+        lucide.createIcons();
+
+        setTimeout(() => {
+            button.innerHTML = originalHTML;
+            button.className = originalClasses;
+            lucide.createIcons();
+        }, 2000);
+    }).catch(() => {
+        alert('Error al copiar al portapapeles');
+    });
+}
+
+const pdfProgress = document.getElementById('pdfProgress');
+const pdfProgressText = document.getElementById('pdfProgressText');
+const pdfResults = document.getElementById('pdfResults');
+const pdfResultsList = document.getElementById('pdfResultsList');
+const pdfError = document.getElementById('pdfError');
+const pdfErrorMessage = document.getElementById('pdfErrorMessage');
+
+// Función para procesar PDFs desde dropZone
+async function procesarPDFsParser(files) {
+    const pdfParserPlaceholder = document.getElementById('pdfParserPlaceholder');
+    const actionHeader = document.getElementById('actionHeader');
+    const statusBar = document.getElementById('statusBar');
+
+    pdfParserPlaceholder.classList.add('hidden');
+    actionHeader.classList.add('hidden');
+    statusBar.classList.add('hidden');
+    pdfProgress.classList.remove('hidden');
+    pdfResults.classList.add('hidden');
+    pdfError.classList.add('hidden');
+
+    const formData = new FormData();
+    files.forEach(f => formData.append('files', f));
+
+    pdfProgressText.textContent = `Procesando ${files.length} archivo(s)...`;
+
+    try {
+        const response = await fetch('/api/pdf-to-excel', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Error al procesar archivos');
+        }
+
+        // Mostrar resultados
+        pdfProgress.classList.add('hidden');
+        pdfResults.classList.remove('hidden');
+        document.getElementById('pdfSuccessCount').textContent = data.results.length;
+
+        pdfResultsList.innerHTML = data.results.map((r, idx) => {
+            const fieldsData = Object.entries(r.fields).map(([k, v]) => k + ': ' + v).join('\n');
+            const tablesData = r.tables.map((t, i) => 'Tabla ' + (i+1) + ':\n' + t.map(row => row.join('\t')).join('\n')).join('\n\n');
+            return `
+            <div class="bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
+                <div class="bg-gradient-to-r from-brand/10 to-blue-500/10 dark:from-brand/20 dark:to-blue-500/20 p-6 border-b border-zinc-200 dark:border-zinc-700">
+                    <div class="flex items-center gap-4">
+                        <div class="p-3 bg-brand/20 rounded-lg">
+                            <i data-lucide="file-pdf" class="w-6 h-6 text-brand"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="font-bold text-zinc-900 dark:text-white text-lg">${r.filename}</p>
+                            <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">${r.pages} página(s)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-6 space-y-6">
+                    ${Object.keys(r.fields).length > 0 ? `
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
+                                    <i data-lucide="tag" class="w-5 h-5 text-amber-500"></i>
+                                    Campos
+                                </h4>
+                                <button class="copyFieldsBtn text-xs px-3 py-1 rounded bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-zinc-900 dark:text-white transition-colors flex items-center gap-1">
+                                    <i data-lucide="copy" class="w-3 h-3"></i>
+                                    Copiar
+                                </button>
+                            </div>
+                            <div class="grid md:grid-cols-2 gap-3">
+                                ${Object.entries(r.fields).map(([key, value]) => `
+                                    <div class="bg-zinc-50 dark:bg-zinc-900 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700">
+                                        <p class="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase">${key}</p>
+                                        <p class="text-sm text-zinc-900 dark:text-white mt-2 break-words">${value}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    ${r.tables.length > 0 ? `
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="font-semibold text-zinc-900 dark:text-white flex items-center gap-2">
+                                    <i data-lucide="table" class="w-5 h-5 text-emerald-500"></i>
+                                    Tablas (${r.tables.length})
+                                </h4>
+                                <button class="copyTablesBtn text-xs px-3 py-1 rounded bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-zinc-900 dark:text-white transition-colors flex items-center gap-1">
+                                    <i data-lucide="copy" class="w-3 h-3"></i>
+                                    Copiar
+                                </button>
+                            </div>
+                            <div class="space-y-4">
+                                ${r.tables.map((table) => `
+                                    <div class="overflow-x-auto border border-zinc-200 dark:border-zinc-700 rounded-lg">
+                                        <table class="w-full text-sm">
+                                            <tbody>
+                                                ${table.map((row, rIdx) => `
+                                                    <tr class="${rIdx === 0 ? 'bg-zinc-100 dark:bg-zinc-900 border-b' : 'border-b hover:bg-zinc-50 dark:hover:bg-zinc-900/50'}">
+                                                        ${row.map(cell => `
+                                                            <td class="px-4 py-3 ${rIdx === 0 ? 'font-semibold' : ''}">${cell}</td>
+                                                        `).join('')}
+                                                    </tr>
+                                                `).join('')}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    <details class="border border-zinc-200 dark:border-zinc-700 rounded-lg">
+                        <summary class="cursor-pointer font-semibold text-zinc-900 dark:text-white p-4 flex items-center gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
+                            <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                            Texto Completo
+                        </summary>
+                        <div class="p-4 bg-zinc-50 dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-700">
+                            <button class="copyTextBtn mb-3 text-xs px-3 py-1 rounded bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-zinc-900 dark:text-white transition-colors flex items-center gap-1">
+                                <i data-lucide="copy" class="w-3 h-3"></i>
+                                Copiar todo
+                            </button>
+                            <p class="text-sm text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-300 dark:scrollbar-thumb-zinc-700">${r.fullText}</p>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        `}).join('');
+
+        document.querySelectorAll('.copyFieldsBtn').forEach((btn, idx) => {
+            btn.addEventListener('click', function() {
+                const fieldsData = Object.entries(data.results[idx].fields).map(([k, v]) => k + ': ' + v).join('\n');
+                copyToClipboard(fieldsData, this);
+            });
+        });
+
+        document.querySelectorAll('.copyTablesBtn').forEach((btn, idx) => {
+            btn.addEventListener('click', function() {
+                const tablesData = data.results[idx].tables.map((t, i) => 'Tabla ' + (i+1) + ':\n' + t.map(row => row.join('\t')).join('\n')).join('\n\n');
+                copyToClipboard(tablesData, this);
+            });
+        });
+
+        document.querySelectorAll('.copyTextBtn').forEach((btn, idx) => {
+            btn.addEventListener('click', function() {
+                copyToClipboard(data.results[idx].fullText, this);
+            });
+        });
+
+        lucide.createIcons();
+        fileInput.value = '';
+    } catch (err) {
+        pdfProgress.classList.add('hidden');
+        pdfError.classList.remove('hidden');
+        pdfErrorMessage.textContent = err.message;
+    }
+}
+
+// Modificar el listener de fileInput para controlar según la pestaña activa
+fileInput.addEventListener('change', function(e) {
+    const files = Array.from(this.files);
+    const isPdfParserActive = !document.getElementById('pdfParserView').classList.contains('hidden');
+
+    if (isPdfParserActive) {
+        // Si estamos en Parsear PDF, solo procesar PDFs
+        const pdfFiles = files.filter(f => f.type === 'application/pdf');
+        if (pdfFiles.length > 0) {
+            procesarPDFsParser(pdfFiles);
+        }
+    } else {
+        // Si estamos en otra pestaña, procesar normalmente (renombrado)
+        processFiles(files);
+    }
+}, { once: false });

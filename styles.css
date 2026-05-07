@@ -1,0 +1,173 @@
+::view-transition-old(root),
+::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+
+.markdown-content {
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.markdown-content p {
+    margin-bottom: 1rem;
+}
+
+.markdown-content h1, .markdown-content h2, .markdown-content h3 {
+    font-weight: 700;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.25;
+}
+
+.markdown-content h1 {
+    font-size: 1.5rem;
+    border-bottom: 2px solid;
+    border-color: inherit;
+    padding-bottom: 0.3rem;
+}
+
+.markdown-content h2 {
+    font-size: 1.25rem;
+    border-bottom: 1px solid;
+    border-color: inherit;
+    padding-bottom: 0.3rem;
+}
+
+.markdown-content h3 {
+    font-size: 1.1rem;
+}
+
+.markdown-content ul, .markdown-content ol {
+    margin-bottom: 1rem;
+    padding-left: 2rem;
+}
+
+.markdown-content li {
+    margin-bottom: 0.5rem;
+}
+
+.markdown-content table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.markdown-content table thead {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.dark .markdown-content table thead {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.markdown-content table th,
+.markdown-content table td {
+    border: 1px solid;
+    border-color: inherit;
+    padding: 0.75rem;
+    text-align: left;
+}
+
+/* Tab active state icons */
+.tab-report.border-brand i[data-lucide="file-pdf"] {
+    @apply text-zinc-900 dark:text-white;
+}
+
+.markdown-content code:not(pre code) {
+    background-color: rgba(0, 0, 0, 0.08);
+    color: inherit;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+.dark .markdown-content code:not(pre code) {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.markdown-content pre {
+    background-color: #282c34;
+    color: #abb2bf;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.markdown-content pre code {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    color: inherit;
+    background: none;
+    padding: 0;
+}
+
+.markdown-content blockquote {
+    border-left: 4px solid;
+    border-color: inherit;
+    padding-left: 1rem;
+    margin: 1rem 0;
+    opacity: 0.8;
+    font-style: italic;
+}
+
+.markdown-content hr {
+    border: none;
+    border-top: 2px solid;
+    border-color: inherit;
+    margin: 2rem 0;
+}
+
+.markdown-content a {
+    color: #1447e6;
+    text-decoration: underline;
+}
+
+.markdown-content a:hover {
+    color: #0e3bb3;
+}
+
+.dark .markdown-content a {
+    color: #60a5fa;
+}
+
+.dark .markdown-content a:hover {
+    color: #93c5fd;
+}
+
+.markdown-content strong {
+    font-weight: 700;
+}
+
+.markdown-content em {
+    font-style: italic;
+}
+
+/* Sintaxis highlighting para código */
+.hljs {
+    background: #282c34 !important;
+    color: #abb2bf !important;
+}
+
+.hljs-attr, .hljs-attribute {
+    color: #e06c75;
+}
+
+.hljs-string {
+    color: #98c379;
+}
+
+.hljs-number {
+    color: #d19a66;
+}
+
+.hljs-literal {
+    color: #56b6c2;
+}
+
+.hljs-function {
+    color: #61afef;
+}
