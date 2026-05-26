@@ -1,0 +1,27 @@
+﻿================================================================================
+RESUMEN CONSOLIDADO DE PROCESAMIENTO DE PDFs
+================================================================================
+Fecha/Hora de ejecución: 2026-05-06 14:47:37
+Ruta raíz procesada: C:\Users\luis.fernandez\OneDrive - ESCOTEL ESPECIALISTAS EN CONTACTO TELEFONICO S.A. DE C.V\Archivos de Andrea José Ramírez - Desarrollo comprobantes 2
+
+COMPROBANTES RENOMBRADOS:
+  - PDFs individuales: 4676
+  - Paginas extraidas de masivos: 2289
+  - Total comprobantes renombrados: 6965
+
+FORMATO DISTINTO AL ESPERADO:
+  - Paginas extraidas de masivos (sin OP): 59
+  - PDFs individuales (sin patron): 414
+  - Total formato distinto: 473
+
+HOJAS OMITIDAS:
+  - Paginas listado informativo (masivos): 82
+  - PDFs no editables (imagen): 1
+  - Total hojas omitidas: 83
+
+TOTAL DE HOJAS EN ARCHIVOS: 7521
+
+VERIFICACION:
+  6965 + 473 + 83 = 7521
+
+  ✓ OK - VERIFICACION EXITOSA
