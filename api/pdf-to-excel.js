@@ -1,4 +1,4 @@
-const PDFParser = require('../pdf-parser');
+const PDFParser = require('../ghost-bank-script/pdf-parser');
 const Busboy = require('busboy');
 
 module.exports = async function handler(req, res) {

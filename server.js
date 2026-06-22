@@ -2,7 +2,7 @@ require('dotenv').config();
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const PDFParser = require('./pdf-parser');
+const PDFParser = require('./ghost-bank-script/pdf-parser');
 
 const PORT = 3000;
 
