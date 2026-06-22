@@ -9,12 +9,18 @@ const PORT = 3000;
 // Variables de entorno que se expondrán al frontend
 const PUBLIC_ENV_KEYS = [
   'GROQ_API_KEY',
+  'OPENROUTER_API_KEY',
+  'GOOGLE_API_KEY',
+  'MISTRAL_API_KEY',
+  'SAMBANOVA_API_KEY',
+  'COHERE_API_KEY',
+  'CEREBRAS_API_KEY',
 ];
 
 const server = http.createServer((req, res) => {
   // CORS para que el index.html pueda hacer fetch
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
@@ -31,6 +37,32 @@ const server = http.createServer((req, res) => {
     }
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(env));
+    return;
+  }
+
+  // Endpoint: POST /api/chat → proxy para LLM providers (evita CORS)
+  if (req.method === 'POST' && req.url === '/api/chat') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', async () => {
+      try {
+        const { url, key, payload } = JSON.parse(body);
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${key}`,
+          },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.text();
+        res.writeHead(response.status, { 'Content-Type': 'application/json' });
+        res.end(data);
+      } catch (error) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: error.message }));
+      }
+    });
     return;
   }
 

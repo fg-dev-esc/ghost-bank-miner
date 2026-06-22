@@ -417,15 +417,26 @@ function downloadZip() {
     });
 }
 
-// ===== Chat - Asistente de Excel (Groq API) =====
+// ===== Chat - Multi-Provider =====
 let GROQ_API_KEY = '';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const PROVIDER_URLS = {
+    cerebras:   'https://api.cerebras.ai/v1/chat/completions',
+    mistral:    'https://api.mistral.ai/v1/chat/completions',
+    sambanova:  'https://api.sambanova.ai/v1/chat/completions',
+    cohere:     'https://api.cohere.com/compatibility/v1/chat/completions',
+    openrouter: 'https://openrouter.ai/api/v1/chat/completions',
+};
+let API_KEYS = {};
 
-// Cargar API key desde el servidor
+// Cargar todas las API keys desde el servidor
 fetch('/api/env')
   .then(r => r.json())
-  .then(env => { GROQ_API_KEY = env.GROQ_API_KEY; })
-  .catch(() => console.warn('No se pudo cargar GROQ_API_KEY'));
+  .then(env => {
+      GROQ_API_KEY = env.GROQ_API_KEY;
+      API_KEYS = env;
+  })
+  .catch(() => console.warn('No se pudieron cargar las API keys'));
 
 let chatHistory = []; // Almacenar historial de chat
 let uploadedImages = []; // Almacenar imágenes en base64
@@ -456,10 +467,62 @@ TEMAS EN LOS QUE ERES EXPERTO:
 - Administración de hojas de cálculo`;
 
 const MODEL_META = {
-    'openai/gpt-oss-120b':               { label: 'OpenAI GPT-OSS-120B',   icon: 'zap',   color: 'text-emerald-500' },
-    'moonshotai/kimi-k2-instruct-0905':  { label: 'Moonshot Kimi-K2',       icon: 'moon',  color: 'text-blue-400'    },
-    'qwen/qwen3-32b':                    { label: 'Qwen3-32B (Thinking)',   icon: 'brain', color: 'text-violet-500'  },
+    // === Cerebras (verificados ✅) ===
+    'cerebras/gpt-oss-120b':                                 { label: 'GPT-OSS 120B',            icon: 'microchip',    color: 'text-teal-500',    provider: 'cerebras', modelId: 'gpt-oss-120b' },
+    'cerebras/zai-glm-4.7':                                  { label: 'GLM 4.7',                 icon: 'microchip',    color: 'text-teal-400',    provider: 'cerebras', modelId: 'zai-glm-4.7' },
+    // === Groq (todos verificados ✅) ===
+    'groq/openai/gpt-oss-120b':                              { label: 'GPT-OSS 120B',            icon: 'zap',          color: 'text-emerald-500', provider: 'groq', modelId: 'openai/gpt-oss-120b' },
+    'groq/openai/gpt-oss-20b':                               { label: 'GPT-OSS 20B',             icon: 'zap',          color: 'text-emerald-500', provider: 'groq', modelId: 'openai/gpt-oss-20b' },
+    'groq/llama-3.3-70b-versatile':                          { label: 'Llama 3.3 70B',           icon: 'zap',          color: 'text-emerald-400', provider: 'groq', modelId: 'llama-3.3-70b-versatile' },
+    'groq/llama-3.1-8b-instant':                             { label: 'Llama 3.1 8B Instant',    icon: 'zap',          color: 'text-emerald-400', provider: 'groq', modelId: 'llama-3.1-8b-instant' },
+    'groq/qwen/qwen3-32b':                                   { label: 'Qwen3-32B (Thinking)',    icon: 'brain',        color: 'text-violet-500',  provider: 'groq', modelId: 'qwen/qwen3-32b' },
+    'groq/qwen/qwen3.6-27b':                                 { label: 'Qwen3.6-27B',             icon: 'brain',        color: 'text-violet-400',  provider: 'groq', modelId: 'qwen/qwen3.6-27b' },
+    'groq/meta-llama/llama-4-scout-17b-16e-instruct':        { label: 'Llama 4 Scout 17B',       icon: 'eye',          color: 'text-emerald-300', provider: 'groq', modelId: 'meta-llama/llama-4-scout-17b-16e-instruct' },
+    // === Mistral (todos verificados ✅) ===
+    'mistral/mistral-small-latest':                          { label: 'Mistral Small',           icon: 'wind',         color: 'text-orange-500',  provider: 'mistral', modelId: 'mistral-small-latest' },
+    'mistral/mistral-large-latest':                          { label: 'Mistral Large',           icon: 'wind',         color: 'text-orange-400',  provider: 'mistral', modelId: 'mistral-large-latest' },
+    'mistral/codestral-latest':                              { label: 'Codestral',               icon: 'code',         color: 'text-orange-300',  provider: 'mistral', modelId: 'codestral-latest' },
+    'mistral/pixtral-large-latest':                          { label: 'Pixtral Large',           icon: 'image',        color: 'text-orange-600',  provider: 'mistral', modelId: 'pixtral-large-latest' },
+    'mistral/ministral-8b-latest':                           { label: 'Ministral 8B',            icon: 'wind',         color: 'text-orange-300',  provider: 'mistral', modelId: 'ministral-8b-latest' },
+    // === SambaNova (verificados ✅) ===
+    'sambanova/Meta-Llama-3.3-70B-Instruct':                { label: 'Llama 3.3 70B',           icon: 'cpu',          color: 'text-rose-500',    provider: 'sambanova', modelId: 'Meta-Llama-3.3-70B-Instruct' },
+    'sambanova/DeepSeek-V3.1':                               { label: 'DeepSeek V3.1',           icon: 'cpu',          color: 'text-rose-400',    provider: 'sambanova', modelId: 'DeepSeek-V3.1' },
+    'sambanova/gpt-oss-120b':                                { label: 'GPT-OSS 120B',            icon: 'cpu',          color: 'text-rose-600',    provider: 'sambanova', modelId: 'gpt-oss-120b' },
+    // === Cohere (verificado ✅) ===
+    'cohere/command-a-03-2025':                              { label: 'Command A',               icon: 'message-circle', color: 'text-violet-500', provider: 'cohere', modelId: 'command-a-03-2025' },
+    // === OpenRouter gratuitos (verificados ✅) ===
+    'openrouter/openrouter/free':                            { label: 'Free Router (Auto)',      icon: 'globe',        color: 'text-sky-500',     provider: 'openrouter', modelId: 'openrouter/free' },
+    'openrouter/openai/gpt-oss-120b:free':                   { label: 'GPT-OSS 120B (Free)',     icon: 'globe',        color: 'text-sky-500',     provider: 'openrouter', modelId: 'openai/gpt-oss-120b:free' },
+    'openrouter/openai/gpt-oss-20b:free':                    { label: 'GPT-OSS 20B (Free)',      icon: 'globe',        color: 'text-sky-400',     provider: 'openrouter', modelId: 'openai/gpt-oss-20b:free' },
+    'openrouter/nvidia/nemotron-3-ultra-550b-a55b:free':     { label: 'Nemotron 3 Ultra 550B',   icon: 'globe',        color: 'text-sky-600',     provider: 'openrouter', modelId: 'nvidia/nemotron-3-ultra-550b-a55b:free' },
+    'openrouter/nvidia/nemotron-3-super-120b-a12b:free':     { label: 'Nemotron 3 Super 120B',   icon: 'globe',        color: 'text-sky-500',     provider: 'openrouter', modelId: 'nvidia/nemotron-3-super-120b-a12b:free' },
+    'openrouter/nvidia/nemotron-3-nano-30b-a3b:free':        { label: 'Nemotron 3 Nano 30B',     icon: 'globe',        color: 'text-sky-400',     provider: 'openrouter', modelId: 'nvidia/nemotron-3-nano-30b-a3b:free' },
+    'openrouter/google/gemma-4-31b-it:free':                 { label: 'Gemma 4 31B (Free)',      icon: 'globe',        color: 'text-sky-300',     provider: 'openrouter', modelId: 'google/gemma-4-31b-it:free' },
+    'openrouter/google/gemma-4-26b-a4b-it:free':             { label: 'Gemma 4 26B (Free)',      icon: 'globe',        color: 'text-sky-300',     provider: 'openrouter', modelId: 'google/gemma-4-26b-a4b-it:free' },
 };
+
+const PROVIDER_LABELS = {
+    cerebras: 'Cerebras', groq: 'Groq', mistral: 'Mistral',
+    sambanova: 'SambaNova', cohere: 'Cohere', openrouter: 'OpenRouter'
+};
+
+function buildModelDropdown() {
+    const menu = document.getElementById('modelDropdownMenu');
+    const grouped = {};
+    for (const [id, meta] of Object.entries(MODEL_META)) {
+        if (!grouped[meta.provider]) grouped[meta.provider] = [];
+        grouped[meta.provider].push({ id, ...meta });
+    }
+    let html = '';
+    for (const [prov, models] of Object.entries(grouped)) {
+        html += `<div class="px-3 py-1.5 text-xs font-semibold text-zinc-400 uppercase tracking-wider border-t border-zinc-100 dark:border-zinc-800 first:border-0 mt-1 first:mt-0">${PROVIDER_LABELS[prov] || prov}</div>`;
+        for (const m of models) {
+            html += `<button onclick="selectModel('${m.id}')" class="w-full flex items-center gap-2 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"><i data-lucide="${m.icon}" class="w-3.5 h-3.5 ${m.color} shrink-0"></i>${m.label}</button>`;
+        }
+    }
+    menu.innerHTML = html;
+    lucide.createIcons();
+}
 
 function toggleModelDropdown() {
     document.getElementById('modelDropdownMenu').classList.toggle('hidden');
@@ -484,8 +547,10 @@ document.addEventListener('click', (e) => {
 
 function getChatModel() {
     const modelSelect = document.getElementById('modelSelect');
-    return modelSelect ? modelSelect.value : 'openai/gpt-oss-120b';
+    return modelSelect ? modelSelect.value : 'cerebras/gpt-oss-120b';
 }
+
+buildModelDropdown();
 
 // Manejar carga de imágenes
 function handleImageUpload(event) {
@@ -571,11 +636,12 @@ function addChatMessage(text, isUser = true) {
     } else {
         contentDiv.className = 'max-w-2xl px-4 py-3 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 markdown-content';
 
-        // Separar bloque <think> del contenido principal
-        const thinkMatch = text.match(/^<think>([\s\S]*?)<\/think>\s*/);
+        // Separar bloque <think> del contenido principal (soporta <think> y entities HTML)
+        const decoded = text.replace(/&lt;think&gt;/g, '<think>').replace(/&lt;\/think&gt;/g, '</think>');
+        const thinkMatch = decoded.match(/<think>([\s\S]*?)<\/think>\s*/);
         if (thinkMatch) {
             const thinkContent = thinkMatch[1].trim();
-            const mainContent = text.slice(thinkMatch[0].length).trim();
+            const mainContent = decoded.slice(thinkMatch[0].length).trim();
 
             const thinkDiv = document.createElement('details');
             thinkDiv.className = 'mb-3 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-900 text-xs text-zinc-500 dark:text-zinc-400';
@@ -756,19 +822,20 @@ Sé extremadamente detallista y específico.`;
             });
 
             // Llamar a Llama para análisis de imágenes
-            const visionResponse = await fetch(GROQ_API_URL, {
+            const visionResponse = await fetch('/api/chat', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${GROQ_API_KEY}`
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    model: 'meta-llama/llama-4-scout-17b-16e-instruct',
-                    messages: visionMessages,
-                    temperature: 0.7,
-                    max_completion_tokens: 3584,
-                    top_p: 0.9,
-                    stream: false
+                    url: GROQ_API_URL,
+                    key: GROQ_API_KEY,
+                    payload: {
+                        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+                        messages: visionMessages,
+                        temperature: 0.7,
+                        max_completion_tokens: 3584,
+                        top_p: 0.9,
+                        stream: false
+                    }
                 })
             });
 
@@ -792,24 +859,28 @@ Sé extremadamente detallista y específico.`;
         });
 
         const userModel = getChatModel();
+        const modelMeta = MODEL_META[userModel];
+        const provider = modelMeta?.provider || 'groq';
+        const modelId = modelMeta?.modelId || userModel;
+        const apiUrl = provider === 'groq' ? GROQ_API_URL : PROVIDER_URLS[provider];
+        const apiKey = provider === 'groq' ? GROQ_API_KEY : (API_KEYS[`${provider.toUpperCase()}_API_KEY`] || '');
 
-        const response = await fetch(GROQ_API_URL, {
+        const payload = {
+            model: modelId,
+            messages: [
+                { role: 'system', content: SYSTEM_PROMPT },
+                ...chatHistory
+            ],
+            temperature: 0.7,
+            max_completion_tokens: 3584,
+            top_p: 0.9,
+            stream: false
+        };
+
+        const response = await fetch('/api/chat', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${GROQ_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: userModel,
-                messages: [
-                    { role: 'system', content: SYSTEM_PROMPT },
-                    ...chatHistory
-                ],
-                temperature: 0.7,
-                    max_completion_tokens: 3584,
-                    top_p: 0.9,
-                stream: false
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: apiUrl, key: apiKey, payload })
         });
 
         if (!response.ok) {
@@ -818,7 +889,14 @@ Sé extremadamente detallista y específico.`;
         }
 
         const data = await response.json();
-        const assistantMessage = data.choices[0].message.content;
+        const msg = data.choices[0].message;
+        const reasoning = msg.reasoning || '';
+        let assistantMessage = msg.content || '';
+
+        // Si el modelo devolvió reasoning separado (Cerebras), prepend como <think> block
+        if (reasoning && !assistantMessage.includes('<think>')) {
+            assistantMessage = `<think>\n${reasoning}\n</think>\n\n${assistantMessage}`;
+        }
 
         // Remover typing indicator
         const typingIndicator = document.getElementById('typingIndicator');

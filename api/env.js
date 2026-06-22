@@ -1,5 +1,11 @@
 const PUBLIC_ENV_KEYS = [
   'GROQ_API_KEY',
+  'OPENROUTER_API_KEY',
+  'GOOGLE_API_KEY',
+  'MISTRAL_API_KEY',
+  'SAMBANOVA_API_KEY',
+  'COHERE_API_KEY',
+  'CEREBRAS_API_KEY',
 ];
 
 module.exports = function handler(req, res) {
