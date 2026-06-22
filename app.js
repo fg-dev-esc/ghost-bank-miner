@@ -491,14 +491,13 @@ const MODEL_META = {
     // === Cohere (verificado ✅) ===
     'cohere/command-a-03-2025':                              { label: 'Command A',               icon: 'message-circle', color: 'text-violet-500', provider: 'cohere', modelId: 'command-a-03-2025' },
     // === OpenRouter gratuitos (verificados ✅) ===
-    'openrouter/openrouter/free':                            { label: 'Free Router (Auto)',      icon: 'globe',        color: 'text-sky-500',     provider: 'openrouter', modelId: 'openrouter/free' },
-    'openrouter/openai/gpt-oss-120b:free':                   { label: 'GPT-OSS 120B (Free)',     icon: 'globe',        color: 'text-sky-500',     provider: 'openrouter', modelId: 'openai/gpt-oss-120b:free' },
-    'openrouter/openai/gpt-oss-20b:free':                    { label: 'GPT-OSS 20B (Free)',      icon: 'globe',        color: 'text-sky-400',     provider: 'openrouter', modelId: 'openai/gpt-oss-20b:free' },
+    // === OpenRouter gratuitos (verificados ✅) ===
     'openrouter/nvidia/nemotron-3-ultra-550b-a55b:free':     { label: 'Nemotron 3 Ultra 550B',   icon: 'globe',        color: 'text-sky-600',     provider: 'openrouter', modelId: 'nvidia/nemotron-3-ultra-550b-a55b:free' },
     'openrouter/nvidia/nemotron-3-super-120b-a12b:free':     { label: 'Nemotron 3 Super 120B',   icon: 'globe',        color: 'text-sky-500',     provider: 'openrouter', modelId: 'nvidia/nemotron-3-super-120b-a12b:free' },
     'openrouter/nvidia/nemotron-3-nano-30b-a3b:free':        { label: 'Nemotron 3 Nano 30B',     icon: 'globe',        color: 'text-sky-400',     provider: 'openrouter', modelId: 'nvidia/nemotron-3-nano-30b-a3b:free' },
-    'openrouter/google/gemma-4-31b-it:free':                 { label: 'Gemma 4 31B (Free)',      icon: 'globe',        color: 'text-sky-300',     provider: 'openrouter', modelId: 'google/gemma-4-31b-it:free' },
-    'openrouter/google/gemma-4-26b-a4b-it:free':             { label: 'Gemma 4 26B (Free)',      icon: 'globe',        color: 'text-sky-300',     provider: 'openrouter', modelId: 'google/gemma-4-26b-a4b-it:free' },
+    'openrouter/nvidia/nemotron-nano-12b-v2-vl:free':        { label: 'Nemotron Nano 12B VL',    icon: 'globe',        color: 'text-sky-300',     provider: 'openrouter', modelId: 'nvidia/nemotron-nano-12b-v2-vl:free' },
+    'openrouter/openai/gpt-oss-120b:free':                   { label: 'GPT-OSS 120B (Free)',     icon: 'globe',        color: 'text-sky-500',     provider: 'openrouter', modelId: 'openai/gpt-oss-120b:free' },
+    'openrouter/openai/gpt-oss-20b:free':                    { label: 'GPT-OSS 20B (Free)',      icon: 'globe',        color: 'text-sky-400',     provider: 'openrouter', modelId: 'openai/gpt-oss-20b:free' },
 };
 
 const PROVIDER_LABELS = {
