@@ -239,7 +239,7 @@
                 <h1 class="font-bold text-lg tracking-tight">Renombrador <span class="text-zinc-400 dark:text-zinc-500 font-normal">op [N] ref</span></h1>
             </div>
 
-            <div class="hidden sm:flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+            <div class="hidden" aria-hidden="true">
                 <span>¿Necesitas ayuda?</span>
                 <a href="mailto:luis.fernandez@escotel.com.mx?subject=Soporte%20T%C3%A9cnico%20-%20Renombrador%20PDF&body=Hola%20Luis%2C%0D%0A%0D%0ASolicito%20soporte%20t%C3%A9cnico%20para%20el%20Renombrador%20de%20PDFs%20(op%20%5BN%5D%20ref).%0D%0A%0D%0ADescripci%C3%B3n%20del%20problema%3A%0D%0A%5BDescribe%20aqu%C3%AD%20tu%20problema%20o%20consulta%5D%0D%0A%0D%0AArchivo(s)%20afectado(s)%3A%0D%0A%5BNombre%20del%20archivo%20o%20archivos%5D%0D%0A%0D%0APasos%20para%20reproducir%3A%0D%0A1.%20%0D%0A2.%20%0D%0A3.%20%0D%0A%0D%0AComportamiento%20esperado%3A%0D%0A%5BQu%C3%A9%20esperabas%20que%20sucediera%5D%0D%0A%0D%0AComportamiento%20actual%3A%0D%0A%5BQu%C3%A9%20est%C3%A1%20sucediendo%20actualmente%5D%0D%0A%0D%0ASaludos%20cordiales." class="inline-flex items-center gap-1.5 text-brand hover:text-brand-hover font-medium transition-colors group">
                     <i data-lucide="mail" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
@@ -247,15 +247,17 @@
                 </a>
             </div>
 
-            <a href="https://cfdi-validation.vercel.app/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs font-mono font-medium uppercase tracking-wide text-brand hover:text-brand-hover transition-colors" title="Abrir Validador CFDI">
-                <i data-lucide="external-link" class="w-4 h-4"></i>
-                <span class="hidden sm:inline">Validador CFDI</span>
-            </a>
+            <div class="flex items-center gap-3">
+                <a href="https://cfdi-validation.vercel.app/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs font-mono font-medium uppercase tracking-wide text-brand hover:text-brand-hover transition-colors" title="Abrir Validador CFDI">
+                    <i data-lucide="external-link" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Validador CFDI</span>
+                </a>
 
-            <button onclick="toggleTheme()" class="p-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-500 dark:text-zinc-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand/20" title="Cambiar tema">
-                <i data-lucide="sun" class="w-5 h-5 hidden dark:block transition-transform duration-200"></i>
-                <i data-lucide="moon" class="w-5 h-5 block dark:hidden transition-transform duration-200"></i>
-            </button>
+                <button onclick="toggleTheme()" class="p-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-500 dark:text-zinc-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand/20" title="Cambiar tema">
+                    <i data-lucide="sun" class="w-5 h-5 hidden dark:block transition-transform duration-200"></i>
+                    <i data-lucide="moon" class="w-5 h-5 block dark:hidden transition-transform duration-200"></i>
+                </button>
+            </div>
         </div>
     </nav>
 
