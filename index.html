@@ -10,7 +10,7 @@
     <!-- Fuentes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Librerías -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -30,7 +30,10 @@
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    fontFamily: {
+                        sans: ['Geist', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    },
                     colors: {
                         brand: {
                             DEFAULT: '#1447e6',
@@ -130,7 +133,7 @@
             color: inherit;
             padding: 0.2rem 0.4rem;
             border-radius: 0.25rem;
-            font-family: 'Courier New', monospace;
+            font-family: 'JetBrains Mono', monospace;
             font-size: 0.9em;
         }
 
@@ -149,7 +152,7 @@
         }
 
         .markdown-content pre code {
-            font-family: 'Courier New', monospace;
+            font-family: 'JetBrains Mono', monospace;
             font-size: 0.9rem;
             color: inherit;
             background: none;
@@ -243,6 +246,11 @@
                     luis.fernandez@escotel.com.mx
                 </a>
             </div>
+
+            <a href="https://cfdi-validation.vercel.app/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs font-mono font-medium uppercase tracking-wide text-brand hover:text-brand-hover transition-colors" title="Abrir Validador CFDI">
+                <i data-lucide="external-link" class="w-4 h-4"></i>
+                <span class="hidden sm:inline">Validador CFDI</span>
+            </a>
 
             <button onclick="toggleTheme()" class="p-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-500 dark:text-zinc-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand/20" title="Cambiar tema">
                 <i data-lucide="sun" class="w-5 h-5 hidden dark:block transition-transform duration-200"></i>
