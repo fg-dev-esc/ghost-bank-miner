@@ -1015,30 +1015,30 @@ TEMAS EN LOS QUE ERES EXPERTO:
         const MODEL_META = {
             // === Cerebras (verificados ✅) ===
             'cerebras/gpt-oss-120b':                                 { label: 'GPT-OSS 120B',            icon: 'microchip',    color: 'text-teal-500',    provider: 'cerebras', modelId: 'gpt-oss-120b' },
-            'cerebras/zai-glm-4.7':                                  { label: 'GLM 4.7',                 icon: 'microchip',    color: 'text-teal-400',    provider: 'cerebras', modelId: 'zai-glm-4.7' },
+            // 'cerebras/zai-glm-4.7':                                  { label: 'GLM 4.7',                 icon: 'microchip',    color: 'text-teal-400',    provider: 'cerebras', modelId: 'zai-glm-4.7' },
             // === Groq (todos verificados ✅) ===
             'groq/qwen/qwen3.6-27b':                                 { label: 'Qwen3.6-27B',             icon: 'brain',        color: 'text-violet-400',  provider: 'groq', modelId: 'qwen/qwen3.6-27b' },
             // 'groq/openai/gpt-oss-120b':                              { label: 'GPT-OSS 120B',            icon: 'zap',          color: 'text-emerald-500', provider: 'groq', modelId: 'openai/gpt-oss-120b' },
-            'groq/openai/gpt-oss-20b':                               { label: 'GPT-OSS 20B',             icon: 'zap',          color: 'text-emerald-500', provider: 'groq', modelId: 'openai/gpt-oss-20b' },
+            // 'groq/openai/gpt-oss-20b':                               { label: 'GPT-OSS 20B',             icon: 'zap',          color: 'text-emerald-500', provider: 'groq', modelId: 'openai/gpt-oss-20b' },
             // 'groq/qwen/qwen3-32b':                                   { label: 'Qwen3-32B',    icon: 'brain',        color: 'text-violet-500',  provider: 'groq', modelId: 'qwen/qwen3-32b' },
             // 'groq/meta-llama/llama-4-scout-17b-16e-instruct':        { label: 'Llama 4 Scout 17B',       icon: 'eye',          color: 'text-emerald-300', provider: 'groq', modelId: 'meta-llama/llama-4-scout-17b-16e-instruct' },
             // 'groq/llama-3.3-70b-versatile':                          { label: 'Llama 3.3 70B',           icon: 'zap',          color: 'text-emerald-400', provider: 'groq', modelId: 'llama-3.3-70b-versatile' },
             // 'groq/llama-3.1-8b-instant':                             { label: 'Llama 3.1 8B Instant',    icon: 'zap',          color: 'text-emerald-400', provider: 'groq', modelId: 'llama-3.1-8b-instant' },
             // === Mistral (todos verificados ✅) ===
-            'mistral/mistral-large-latest':                          { label: 'Mistral Large',           icon: 'wind',         color: 'text-orange-400',  provider: 'mistral', modelId: 'mistral-large-latest' },
+            // 'mistral/mistral-large-latest':                          { label: 'Mistral Large',           icon: 'wind',         color: 'text-orange-400',  provider: 'mistral', modelId: 'mistral-large-latest' },
             // 'mistral/codestral-latest':                              { label: 'Codestral',               icon: 'code',         color: 'text-orange-300',  provider: 'mistral', modelId: 'codestral-latest' },
             // 'mistral/pixtral-large-latest':                          { label: 'Pixtral Large',           icon: 'image',        color: 'text-orange-600',  provider: 'mistral', modelId: 'pixtral-large-latest' },
             // 'mistral/mistral-small-latest':                          { label: 'Mistral Small',           icon: 'wind',         color: 'text-orange-500',  provider: 'mistral', modelId: 'mistral-small-latest' },
-            // 'mistral/ministral-8b-latest':                           { label: 'Ministral 8B',            icon: 'wind',         color: 'text-orange-300',  provider: 'mistral', modelId: 'ministral-8b-latest' },
+            'mistral/ministral-8b-latest':                           { label: 'Ministral 8B',            icon: 'wind',         color: 'text-orange-300',  provider: 'mistral', modelId: 'ministral-8b-latest' },
             // === SambaNova (verificados ✅) ===
-            'sambanova/DeepSeek-V3.1':                               { label: 'DeepSeek V3.1',           icon: 'cpu',          color: 'text-rose-400',    provider: 'sambanova', modelId: 'DeepSeek-V3.1' },
+            // 'sambanova/DeepSeek-V3.1':                               { label: 'DeepSeek V3.1',           icon: 'cpu',          color: 'text-rose-400',    provider: 'sambanova', modelId: 'DeepSeek-V3.1' },
             // 'sambanova/gpt-oss-120b':                                { label: 'GPT-OSS 120B',            icon: 'cpu',          color: 'text-rose-600',    provider: 'sambanova', modelId: 'gpt-oss-120b' },
             // 'sambanova/Meta-Llama-3.3-70B-Instruct':                { label: 'Llama 3.3 70B',           icon: 'cpu',          color: 'text-rose-500',    provider: 'sambanova', modelId: 'Meta-Llama-3.3-70B-Instruct' },
             // === Cohere (verificado ✅) ===
             'cohere/command-a-03-2025':                              { label: 'Command A',               icon: 'message-circle', color: 'text-violet-500', provider: 'cohere', modelId: 'command-a-03-2025' },
             // === OpenRouter gratuitos (verificados ✅) ===
-            'openrouter/nvidia/nemotron-3-nano-30b-a3b:free':        { label: 'Nemotron 3 Nano 30B',     icon: 'globe',        color: 'text-sky-400',     provider: 'openrouter', modelId: 'nvidia/nemotron-3-nano-30b-a3b:free' },
-            'openrouter/openrouter/free':                            { label: 'Auto Router',      icon: 'globe',        color: 'text-sky-500',     provider: 'openrouter', modelId: 'openrouter/free' },
+            // 'openrouter/nvidia/nemotron-3-nano-30b-a3b:free':        { label: 'Nemotron 3 Nano 30B',     icon: 'globe',        color: 'text-sky-400',     provider: 'openrouter', modelId: 'nvidia/nemotron-3-nano-30b-a3b:free' },
+            // 'openrouter/openrouter/free':                            { label: 'Auto Router',      icon: 'globe',        color: 'text-sky-500',     provider: 'openrouter', modelId: 'openrouter/free' },
             // 'openrouter/openai/gpt-oss-120b:free':                   { label: 'GPT-OSS 120B (Free)',     icon: 'globe',        color: 'text-sky-500',     provider: 'openrouter', modelId: 'openai/gpt-oss-120b:free' },
             // 'openrouter/openai/gpt-oss-20b:free':                    { label: 'GPT-OSS 20B',      icon: 'globe',        color: 'text-sky-400',     provider: 'openrouter', modelId: 'openai/gpt-oss-20b:free' },
             // 'openrouter/nvidia/nemotron-3-ultra-550b-a55b:free':     { label: 'Nemotron 3 Ultra 550B',   icon: 'globe',        color: 'text-sky-600',     provider: 'openrouter', modelId: 'nvidia/nemotron-3-ultra-550b-a55b:free' },
