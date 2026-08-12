@@ -820,15 +820,15 @@ Sé extremadamente detallista y específico.`;
                 });
             });
 
-            // Llamar a Llama para análisis de imágenes
+            // Analizar imágenes con Gemma multimodal en Cerebras
             const visionResponse = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    url: GROQ_API_URL,
-                    key: GROQ_API_KEY,
+                    url: PROVIDER_URLS.cerebras,
+                    key: API_KEYS.CEREBRAS_API_KEY,
                     payload: {
-                        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+                        model: 'gemma-4-31b',
                         messages: visionMessages,
                         temperature: 0.7,
                         max_completion_tokens: 3584,

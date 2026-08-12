@@ -51,6 +51,12 @@
 
     <!-- Estilos Markdown personalizados -->
     <style>
+        *,
+        *::before,
+        *::after {
+            border-radius: 0 !important;
+        }
+
         ::view-transition-old(root),
         ::view-transition-new(root) {
             animation: none;
@@ -462,7 +468,7 @@
                                 type="text"
                                 id="chatInput"
                                 placeholder="Pregunta sobre Excel..."
-                                class="flex-1 px-4 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand dark:focus:border-brand transition-all"
+                                class="flex-1 h-10 px-4 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand dark:focus:border-brand transition-all"
                             />
                             <button
                                 onclick="document.getElementById('imageInput').click()"
@@ -1377,15 +1383,15 @@ Sé extremadamente detallista y específico.`;
                         });
                     });
 
-                    // Llamar a Llama para análisis de imágenes
+                    // Analizar imágenes con Gemma multimodal en Cerebras
                     const visionResponse = await fetch('/api/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            url: GROQ_API_URL,
-                            key: GROQ_API_KEY,
+                            url: PROVIDER_URLS.cerebras,
+                            key: API_KEYS.CEREBRAS_API_KEY,
                             payload: {
-                                model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+                                model: 'gemma-4-31b',
                                 messages: visionMessages,
                                 temperature: 0.7,
                                 max_completion_tokens: 3584,
