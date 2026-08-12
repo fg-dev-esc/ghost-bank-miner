@@ -1,48 +1,25 @@
 lucide.createIcons();
 
-// Theme Logic con View Transition API (círculo animado)
-async function toggleTheme() {
-    const html = document.documentElement;
-    const isDark = html.classList.contains('dark');
-    const btn = document.querySelector('[onclick="toggleTheme()"]');
-
-    if (!document.startViewTransition || !btn) {
-        // Fallback sin animación
-        html.classList.toggle('dark');
-        localStorage.setItem('theme', isDark ? 'light' : 'dark');
+// Transición de tema sincronizada con View Transition API
+function toggleTheme() {
+    const root = document.documentElement;
+    const nextTheme = root.classList.contains('dark') ? 'light' : 'dark';
+    const applyTheme = () => {
+        root.classList.toggle('dark', nextTheme === 'dark');
         lucide.createIcons();
+    };
+
+    if (!document.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        applyTheme();
         return;
     }
 
-    const { top, left, width, height } = btn.getBoundingClientRect();
-    const x = left + width / 2;
-    const y = top + height / 2;
-    const maxRadius = Math.hypot(
-        Math.max(left, window.innerWidth - left),
-        Math.max(top, window.innerHeight - top)
-    );
+    root.style.setProperty('--theme-vt-duration', '500ms');
 
-    const transition = document.startViewTransition(() => {
-        html.classList.toggle('dark');
-        localStorage.setItem('theme', isDark ? 'light' : 'dark');
-        lucide.createIcons();
+    const transition = document.startViewTransition(applyTheme);
+    transition.finished.finally(() => {
+        root.style.removeProperty('--theme-vt-duration');
     });
-
-    await transition.ready;
-
-    document.documentElement.animate(
-        {
-            clipPath: [
-                `circle(0px at ${x}px ${y}px)`,
-                `circle(${maxRadius}px at ${x}px ${y}px)`,
-            ],
-        },
-        {
-            duration: 400,
-            easing: 'ease-in-out',
-            pseudoElement: '::view-transition-new(root)',
-        }
-    );
 }
 
 window.addEventListener('DOMContentLoaded', () => {
