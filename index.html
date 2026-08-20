@@ -420,7 +420,7 @@
                                     onclick="toggleModelDropdown()"
                                     class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand dark:focus:border-brand transition-all"
                                 >
-                                    <span id="modelDropdownLabel" class="flex items-center gap-1.5"><i data-lucide="microchip" class="w-3.5 h-3.5 text-teal-500"></i>GPT-OSS 120B</span>
+                                    <span id="modelDropdownLabel" class="flex items-center gap-1.5"><i data-lucide="zap" class="w-3.5 h-3.5 text-emerald-500"></i>GPT-OSS 120B</span>
                                     <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-zinc-400"></i>
                                 </button>
                                 <div
@@ -431,7 +431,7 @@
                                 </div>
                             </div>
                             <!-- hidden input para mantener compatibilidad con getSelectedModel() -->
-                            <input type="hidden" id="modelSelect" value="cerebras/gpt-oss-120b">
+                            <input type="hidden" id="modelSelect" value="groq/openai/gpt-oss-120b">
                         </div>
                         <button
                             id="newChatBtn"
@@ -962,7 +962,6 @@
         let GROQ_API_KEY = '';
         const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
         const PROVIDER_URLS = {
-            cerebras:   'https://api.cerebras.ai/v1/chat/completions',
             mistral:    'https://api.mistral.ai/v1/chat/completions',
             sambanova:  'https://api.sambanova.ai/v1/chat/completions',
             cohere:     'https://api.cohere.com/compatibility/v1/chat/completions',
@@ -1008,12 +1007,9 @@ TEMAS EN LOS QUE ERES EXPERTO:
 - Administración de hojas de cálculo`;
 
         const MODEL_META = {
-            // === Cerebras (verificados ✅) ===
-            'cerebras/gpt-oss-120b':                                 { label: 'GPT-OSS 120B',            icon: 'microchip',    color: 'text-teal-500',    provider: 'cerebras', modelId: 'gpt-oss-120b' },
-            // 'cerebras/zai-glm-4.7':                                  { label: 'GLM 4.7',                 icon: 'microchip',    color: 'text-teal-400',    provider: 'cerebras', modelId: 'zai-glm-4.7' },
             // === Groq (todos verificados ✅) ===
+            'groq/openai/gpt-oss-120b':                               { label: 'GPT-OSS 120B',            icon: 'zap',          color: 'text-emerald-500', provider: 'groq', modelId: 'openai/gpt-oss-120b' },
             'groq/qwen/qwen3.6-27b':                                 { label: 'Qwen3.6-27B',             icon: 'brain',        color: 'text-violet-400',  provider: 'groq', modelId: 'qwen/qwen3.6-27b' },
-            // 'groq/openai/gpt-oss-120b':                              { label: 'GPT-OSS 120B',            icon: 'zap',          color: 'text-emerald-500', provider: 'groq', modelId: 'openai/gpt-oss-120b' },
             // 'groq/openai/gpt-oss-20b':                               { label: 'GPT-OSS 20B',             icon: 'zap',          color: 'text-emerald-500', provider: 'groq', modelId: 'openai/gpt-oss-20b' },
             // 'groq/qwen/qwen3-32b':                                   { label: 'Qwen3-32B',    icon: 'brain',        color: 'text-violet-500',  provider: 'groq', modelId: 'qwen/qwen3-32b' },
             // 'groq/meta-llama/llama-4-scout-17b-16e-instruct':        { label: 'Llama 4 Scout 17B',       icon: 'eye',          color: 'text-emerald-300', provider: 'groq', modelId: 'meta-llama/llama-4-scout-17b-16e-instruct' },
@@ -1044,7 +1040,7 @@ TEMAS EN LOS QUE ERES EXPERTO:
 
         const PROVIDER_LABELS = {
             groq: 'Groq', openrouter: 'OpenRouter', google: 'Google',
-            mistral: 'Mistral', sambanova: 'SambaNova', cohere: 'Cohere', cerebras: 'Cerebras'
+            mistral: 'Mistral', sambanova: 'SambaNova', cohere: 'Cohere'
         };
 
         function buildModelDropdown() {
@@ -1090,7 +1086,7 @@ TEMAS EN LOS QUE ERES EXPERTO:
 
         function getChatModel() {
             const modelSelect = document.getElementById('modelSelect');
-            return modelSelect ? modelSelect.value : 'cerebras/gpt-oss-120b';
+            return modelSelect ? modelSelect.value : 'groq/qwen/qwen3.6-27b';
         }
 
         // Manejar carga de imágenes
@@ -1362,15 +1358,15 @@ Sé extremadamente detallista y específico.`;
                         });
                     });
 
-                    // Analizar imágenes con Gemma multimodal en Cerebras
+                    // Analizar imágenes con Llama multimodal en Groq
                     const visionResponse = await fetch('/api/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            url: PROVIDER_URLS.cerebras,
-                            key: API_KEYS.CEREBRAS_API_KEY,
+                            url: GROQ_API_URL,
+                            key: GROQ_API_KEY,
                             payload: {
-                                model: 'gemma-4-31b',
+                                model: 'meta-llama/llama-4-scout-17b-16e-instruct',
                                 messages: visionMessages,
                                 temperature: 0.7,
                                 max_completion_tokens: 3584,
@@ -1434,7 +1430,7 @@ Sé extremadamente detallista y específico.`;
                 const reasoning = msg.reasoning || '';
                 let assistantMessage = msg.content || '';
 
-                // Si el modelo devolvió reasoning separado (Cerebras), prepend como <think> block
+                // Si el modelo devolvió reasoning separado, prepend como <think> block
                 if (reasoning && !assistantMessage.includes('<think>')) {
                     assistantMessage = `<think>\n${reasoning}\n</think>\n\n${assistantMessage}`;
                 }

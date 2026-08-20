@@ -1,0 +1,17 @@
+{
+  "synthetic": true,
+  "cases": [
+    {
+      "name": "op-ref",
+      "text": "Documento sintetico OP: 123456 REF comprobante",
+      "operationId": "123456",
+      "outputName": "123456.pdf"
+    },
+    {
+      "name": "concepto-op",
+      "text": "Concepto Pago de prueba OP 654321",
+      "operationId": "654321",
+      "outputName": "654321.pdf"
+    }
+  ]
+}
