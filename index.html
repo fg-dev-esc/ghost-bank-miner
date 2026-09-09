@@ -1009,7 +1009,7 @@ TEMAS EN LOS QUE ERES EXPERTO:
         const MODEL_META = {
             // === Groq (todos verificados ✅) ===
             'groq/openai/gpt-oss-120b':                               { label: 'GPT-OSS 120B',            icon: 'zap',          color: 'text-emerald-500', provider: 'groq', modelId: 'openai/gpt-oss-120b' },
-            'groq/qwen/qwen3.8-27b':                                 { label: 'Qwen3.8-27B',             icon: 'brain',        color: 'text-violet-400',  provider: 'groq', modelId: 'qwen/qwen3.6-27b' },
+            'groq/qwen/qwen3.8-27b':                                 { label: 'Qwen3.8-27B',             icon: 'brain',        color: 'text-violet-400',  provider: 'groq', modelId: 'qwen/qwen3.8-27b' },
             // 'groq/openai/gpt-oss-20b':                               { label: 'GPT-OSS 20B',             icon: 'zap',          color: 'text-emerald-500', provider: 'groq', modelId: 'openai/gpt-oss-20b' },
             // 'groq/qwen/qwen3-32b':                                   { label: 'Qwen3-32B',    icon: 'brain',        color: 'text-violet-500',  provider: 'groq', modelId: 'qwen/qwen3-32b' },
             // 'groq/meta-llama/llama-4-scout-17b-16e-instruct':        { label: 'Llama 4 Scout 17B',       icon: 'eye',          color: 'text-emerald-300', provider: 'groq', modelId: 'meta-llama/llama-4-scout-17b-16e-instruct' },
@@ -1330,8 +1330,10 @@ TEMAS EN LOS QUE ERES EXPERTO:
             addChatTyping();
 
             try {
-                // Si hay imágenes, primero procesarlas con Llama para obtener contexto detallado
+                // Si hay imágenes, primero procesarlas con un modelo de visión multimodal (Groq)
                 if (imagesToProcess.length > 0) {
+                    imagesToProcess = imagesToProcess.slice(0, 3); // qwen/qwen3.8-27b acepta máx 3 imágenes
+
                     const imageContextPrompt = `Analiza esta/s imagen/es con MÁXIMO DETALLE. Describe:
 - Qué hay en la imagen (tablas, gráficos, fórmulas, datos, etc)
 - Estructura y contenido específico
@@ -1358,7 +1360,7 @@ Sé extremadamente detallista y específico.`;
                         });
                     });
 
-                    // Analizar imágenes con Llama multimodal en Groq
+                    // Analizar imágenes con Qwen 3.8 multimodal en Groq
                     const visionResponse = await fetch('/api/chat', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -1366,7 +1368,7 @@ Sé extremadamente detallista y específico.`;
                             url: GROQ_API_URL,
                             key: GROQ_API_KEY,
                             payload: {
-                                model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+                                model: 'qwen/qwen3.8-27b',
                                 messages: visionMessages,
                                 temperature: 0.7,
                                 max_completion_tokens: 3584,

@@ -769,8 +769,10 @@ async function sendChatMessage() {
     addChatTyping();
 
     try {
-        // Si hay imágenes, primero procesarlas con Llama para obtener contexto detallado
+        // Si hay imágenes, primero procesarlas con un modelo de visión multimodal (Groq)
         if (imagesToProcess.length > 0) {
+            imagesToProcess = imagesToProcess.slice(0, 3); // qwen/qwen3.8-27b acepta máx 3 imágenes
+
             const imageContextPrompt = `Analiza esta/s imagen/es con MÁXIMO DETALLE. Describe:
 - Qué hay en la imagen (tablas, gráficos, fórmulas, datos, etc)
 - Estructura y contenido específico
@@ -797,15 +799,15 @@ Sé extremadamente detallista y específico.`;
                 });
             });
 
-            // Analizar imágenes con Gemma multimodal en Cerebras
+            // Analizar imágenes con Qwen 3.8 multimodal en Groq
             const visionResponse = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    url: PROVIDER_URLS.cerebras,
-                    key: API_KEYS.CEREBRAS_API_KEY,
+                    url: GROQ_API_URL,
+                    key: GROQ_API_KEY,
                     payload: {
-                        model: 'gemma-4-31b',
+                        model: 'qwen/qwen3.8-27b',
                         messages: visionMessages,
                         temperature: 0.7,
                         max_completion_tokens: 3584,
